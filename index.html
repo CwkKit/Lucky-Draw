@@ -1,0 +1,2180 @@
+<!DOCTYPE html>
+<html lang="zh-HK" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公司幸運賽馬大抽獎 | Corporate Horse Racing Lucky Draw</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Noto Sans TC & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Inter"', '"Noto Sans TC"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        turf: {
+                            950: '#04140d',
+                            900: '#072216',
+                            800: '#0b3523',
+                            700: '#104930',
+                            600: '#166240',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbars for internal modals/textareas only */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #071912;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1d583d;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #297a54;
+        }
+
+        html, body {
+            background-color: #040d09;
+            color: #f0fdf4;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+        .neon-gold-shadow {
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.32), inset 0 0 12px rgba(251, 191, 36, 0.14);
+        }
+        .neon-emerald-shadow {
+            box-shadow: 0 0 22px rgba(16, 185, 129, 0.25);
+        }
+        .glass-panel {
+            background: rgba(6, 24, 17, 0.90);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(52, 211, 153, 0.22);
+        }
+        @keyframes pulse-fast {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.06); opacity: 0.88; }
+        }
+        .animate-pulse-fast {
+            animation: pulse-fast 1.2s infinite ease-in-out;
+        }
+        @keyframes ticker-slide {
+            0% { transform: translateY(6px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .commentary-enter {
+            animation: ticker-slide 0.25s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body class="h-screen w-screen overflow-hidden flex flex-col selection:bg-amber-500 selection:text-black">
+
+    <!-- Confetti Overlay Canvas (for victory celebration) -->
+    <canvas id="confettiCanvas" class="fixed inset-0 pointer-events-none z-50 hidden"></canvas>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-[60] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Unified Compact Top Control & Broadcast Bar (Fits everything cleanly so track gets maximum height) -->
+    <header class="glass-panel shrink-0 z-30 border-b border-emerald-500/30 px-3 sm:px-5 py-2">
+        <div class="w-full flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+            
+            <!-- Left: Brand + Participant Drawer Button -->
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600 flex items-center justify-center text-slate-950 font-black text-lg shadow-lg neon-gold-shadow">
+                    <i class="fa-solid fa-horse-head"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-sm sm:text-lg font-black tracking-tight bg-gradient-to-r from-amber-300 via-yellow-100 to-emerald-300 bg-clip-text text-transparent">
+                            公司幸運賽馬大抽獎
+                        </h1>
+                        <span class="hidden xl:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping mr-1"></span>LUCKY DRAW
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Toggle Participant List Drawer Button -->
+                <button id="toggleDrawerBtn" class="ml-1 px-3 py-1.5 rounded-xl bg-emerald-800/80 hover:bg-emerald-700 border border-amber-400/50 text-xs sm:text-sm font-bold text-white flex items-center gap-1.5 shadow transition">
+                    <i class="fa-solid fa-users-viewfinder text-amber-400"></i>
+                    <span>輸入/管理名單</span>
+                    <span id="headerHorseCount" class="px-1.5 py-0.2 bg-amber-400 text-slate-950 font-mono font-black rounded-md text-xs">120</span>
+                </button>
+            </div>
+
+            <!-- Center: Timer Settings + Horse Size Slider + Name Badge Mode -->
+            <div class="flex flex-wrap items-center gap-2">
+                <!-- Timer Presets -->
+                <div class="flex items-center bg-black/50 p-1 rounded-xl border border-emerald-500/30 gap-1">
+                    <span class="text-[11px] font-bold text-emerald-300 px-1.5 hidden sm:inline"><i class="fa-solid fa-stopwatch text-amber-400 mr-1"></i>秒數:</span>
+                    <button data-time="15" class="time-preset-btn px-2 py-1 rounded-lg text-xs font-bold transition bg-emerald-600 text-white">15s</button>
+                    <button data-time="30" class="time-preset-btn px-2 py-1 rounded-lg text-xs font-bold transition text-emerald-300 hover:text-white">30s</button>
+                    <button data-time="45" class="time-preset-btn px-2 py-1 rounded-lg text-xs font-bold transition text-emerald-300 hover:text-white">45s</button>
+                    <button data-time="60" class="time-preset-btn px-2 py-1 rounded-lg text-xs font-bold transition text-emerald-300 hover:text-white">60s</button>
+                    <div class="flex items-center gap-0.5 pl-1 pr-1.5 border-l border-emerald-500/30">
+                        <input id="customTimeInput" type="number" min="5" max="300" value="15"
+                            class="w-10 bg-transparent text-center font-mono font-bold text-xs text-amber-300 focus:outline-none" title="自訂秒數">
+                        <span class="text-[10px] text-emerald-400">秒</span>
+                    </div>
+                </div>
+
+                <!-- Horse Size Zoom Control (馬匹放大調節 - 支援最高 4.5x 巨型馬匹) -->
+                <div class="flex items-center gap-2 bg-black/50 px-3 py-1.5 rounded-xl border border-emerald-500/30" title="調整畫面上賽馬與騎師的放大倍率 (最高 4.5x)">
+                    <i class="fa-solid fa-magnifying-glass-plus text-amber-400 text-xs"></i>
+                    <span class="text-xs font-bold text-emerald-200 hidden sm:inline">馬匹大小</span>
+                    <input id="horseScaleSlider" type="range" min="0.8" max="4.5" step="0.1" value="1.8"
+                        class="w-20 sm:w-28 accent-amber-400 cursor-pointer h-1.5 bg-emerald-950 rounded-lg">
+                    <span id="horseScaleValue" class="font-mono text-xs font-black text-amber-300 w-9 text-right">1.8x</span>
+                </div>
+
+                <!-- Name Tag Display Mode Toggle -->
+                <button id="labelModeBtn" class="px-2.5 py-1.5 rounded-xl bg-black/50 hover:bg-emerald-900/60 border border-emerald-500/30 text-xs font-bold text-emerald-200 flex items-center gap-1.5 transition" title="切換名牌顯示方式">
+                    <i class="fa-solid fa-tags text-amber-400"></i>
+                    <span id="labelModeText">名牌：全部顯示</span>
+                </button>
+            </div>
+
+            <!-- Right: Digital Clock + Start / Reset / Results / Audio -->
+            <div class="flex items-center gap-2">
+                <!-- Live Countdown Clock -->
+                <div class="bg-black/65 border border-amber-400/40 rounded-xl px-3 py-1 flex items-center gap-2">
+                    <span id="raceStatusDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+                    <span id="countdownDisplay" class="font-mono text-lg sm:text-xl font-black text-amber-300 tracking-tight">
+                        00:15.00
+                    </span>
+                </div>
+
+                <button id="startRaceBtn" class="px-4 sm:px-5 py-2 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black text-xs sm:text-sm shadow-lg neon-gold-shadow flex items-center gap-1.5 transform active:scale-95 transition">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                    <span>開閘起跑</span>
+                </button>
+
+                <button id="resetRaceBtn" title="重設回起跑線" class="px-3 py-2 rounded-xl bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-200 font-bold text-xs sm:text-sm flex items-center gap-1 transition">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span class="hidden sm:inline">重設</span>
+                </button>
+
+                <button id="openResultsBtn" class="hidden px-3 py-2 rounded-xl bg-amber-500/25 hover:bg-amber-500/35 border border-amber-400 text-xs sm:text-sm font-bold text-amber-300 items-center gap-1.5 transition">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span class="hidden sm:inline">得獎名單</span>
+                </button>
+
+                <button id="soundToggleBtn" title="切換現場音效" class="w-9 h-9 rounded-xl bg-emerald-900/70 hover:bg-emerald-800/80 border border-emerald-500/40 text-emerald-200 flex items-center justify-center transition">
+                    <i id="soundIcon" class="fa-solid fa-volume-high text-amber-400"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Secondary Live Top 10 Ticker & Commentary Strip (Compact single line) -->
+    <div class="glass-panel shrink-0 border-b border-emerald-500/20 px-3 sm:px-5 py-1.5 flex items-center justify-between gap-3 z-20">
+        <!-- Live Top 10 Real-time Leaderboard Pills -->
+        <div class="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
+            <div class="shrink-0 px-2 py-0.5 rounded-md bg-amber-500 text-slate-950 font-black text-[11px] flex items-center gap-1">
+                <i class="fa-solid fa-crown"></i> 即時領先 Top 10
+            </div>
+            <div id="liveTop10Container" class="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto no-scrollbar py-0.5">
+                <span class="text-xs text-emerald-300/80 font-medium">點擊右上角「開閘起跑」開始抽獎！所有馬匹將於同屏大畫面重疊奔馳競逐 Top 10 大獎！</span>
+            </div>
+        </div>
+
+        <!-- Live Commentary & Progress Pill -->
+        <div class="hidden lg:flex items-center gap-3 shrink-0">
+            <p id="commentaryText" class="text-xs font-bold text-amber-200 max-w-md truncate commentary-enter">
+                已載入 120 位同事名單，隨時準備開閘！
+            </p>
+            <div class="w-28 h-2 rounded-full bg-black/60 overflow-hidden border border-emerald-500/30" title="頭馬距離終點進度">
+                <div id="raceProgressBar" class="h-full w-0 bg-gradient-to-r from-emerald-400 via-amber-400 to-yellow-300 transition-all duration-75"></div>
+            </div>
+            <span id="distancePercentText" class="font-mono text-xs font-bold text-amber-300 w-9 text-right">0%</span>
+        </div>
+    </div>
+
+    <!-- MAIN FULL-SCREEN WORKSPACE (Zero Scrollbars, 100% Remaining Height) -->
+    <div class="relative flex-1 w-full h-full overflow-hidden flex">
+
+        <!-- COLLAPSIBLE LEFT DRAWER: Participant Input & Color Silk Roster -->
+        <aside id="participantSidebar" class="hidden absolute top-2 bottom-2 left-2 w-80 sm:w-96 glass-panel rounded-2xl p-4 flex-col gap-3 shadow-2xl border-2 border-emerald-400/40 z-30">
+            <div class="flex items-center justify-between border-b border-emerald-500/25 pb-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-user text-amber-400"></i>
+                    <h2 class="font-black text-sm sm:text-base text-white">公司抽獎名單設定</h2>
+                    <span id="sidebarCountBadge" class="text-xs font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        共 120 人
+                    </span>
+                </div>
+                <button id="closeSidebarBtn" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition" title="收起面板">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Preset & Quick Actions -->
+            <div class="grid grid-cols-3 gap-1.5">
+                <button id="load10Btn" class="px-2 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-xs font-bold text-amber-200 flex items-center justify-center gap-1 transition">
+                    <i class="fa-solid fa-trophy text-amber-400"></i> 10人名單
+                </button>
+                <button id="load30Btn" class="px-2 py-1.5 rounded-lg bg-emerald-800/60 hover:bg-emerald-700/70 border border-emerald-500/30 text-xs font-semibold text-emerald-100 flex items-center justify-center gap-1 transition">
+                    <i class="fa-solid fa-star text-amber-400"></i> 30人名單
+                </button>
+                <button id="load120Btn" class="px-2 py-1.5 rounded-lg bg-emerald-800/60 hover:bg-emerald-700/70 border border-emerald-500/30 text-xs font-semibold text-emerald-100 flex items-center justify-center gap-1 transition">
+                    <i class="fa-solid fa-bolt text-amber-400"></i> 120人名單
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-1.5">
+                <button id="shuffleNamesBtn" class="px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/30 text-xs font-semibold text-amber-200 flex items-center justify-center gap-1.5 transition">
+                    <i class="fa-solid fa-shuffle"></i> 隨機洗牌及換色
+                </button>
+                <button id="clearNamesBtn" class="px-2.5 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/30 text-xs font-semibold text-rose-200 flex items-center justify-center gap-1.5 transition">
+                    <i class="fa-solid fa-trash-can"></i> 清空名單
+                </button>
+            </div>
+
+            <!-- View Switcher inside Sidebar: Edit Text vs Preview Horses -->
+            <div class="flex rounded-xl bg-black/40 p-1 border border-emerald-500/20">
+                <button id="tabEditBtn" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white shadow transition">
+                    <i class="fa-solid fa-pen-to-square mr-1"></i> 貼上同事名單
+                </button>
+                <button id="tabRosterBtn" class="flex-1 py-1.5 rounded-lg text-xs font-bold text-emerald-300/70 hover:text-white transition">
+                    <i class="fa-solid fa-shirt mr-1"></i> 搜尋/鎖定同事
+                </button>
+            </div>
+
+            <!-- Tab 1: Textarea Input -->
+            <div id="editPanel" class="flex-1 flex flex-col gap-2 min-h-0">
+                <textarea id="namesTextarea" placeholder="請貼上同事名字（每行一個名字，支援 100+ 人同場奔馳）..."
+                    class="w-full flex-1 rounded-xl bg-black/60 border border-emerald-500/30 focus:border-amber-400 focus:outline-none p-3 text-xs sm:text-sm font-mono text-emerald-50 leading-relaxed resize-none select-text"></textarea>
+                <div class="flex items-center justify-between text-[11px] text-emerald-300/80">
+                    <span>自動分配號碼與 12 款鮮豔騎師綵衣</span>
+                    <button id="applyNamesBtn" class="px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-black transition shadow">
+                        套用並關閉
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab 2: Horse Outlook & Color Silk Roster + Spotlight Pin -->
+            <div id="rosterPanel" class="hidden flex-1 flex-col gap-2 min-h-0">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-emerald-400/60 text-xs"></i>
+                    <input id="rosterSearchInput" type="text" placeholder="輸入同事名字或編號鎖定聚光燈..."
+                        class="w-full pl-8 pr-3 py-1.5 rounded-lg bg-black/60 border border-emerald-500/30 text-xs text-white focus:border-amber-400 focus:outline-none select-text">
+                </div>
+                <div id="rosterListContainer" class="flex-1 overflow-y-auto space-y-1.5 pr-1">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- 12 Color Outlooks Legend Bar -->
+            <div class="pt-2 border-t border-emerald-500/20">
+                <div class="text-[11px] font-semibold text-emerald-300/80 mb-1.5 flex items-center justify-between">
+                    <span><i class="fa-solid fa-palette text-amber-400 mr-1"></i>12 款賽馬與騎師配色</span>
+                    <span class="text-[10px] text-amber-300/80">點擊同事可打聚光燈</span>
+                </div>
+                <div id="colorPaletteSwatches" class="grid grid-cols-6 gap-1">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- FULL-VIEWPORT TURF RACECOURSE CANVAS (No scrollbars ever!) -->
+        <main id="canvasViewport" class="relative flex-1 w-full h-full overflow-hidden bg-turf-950">
+            
+            <!-- Top-Left & Top-Right Floating Track Badges -->
+            <div class="absolute top-2.5 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
+                <div class="flex items-center gap-2">
+                    <div class="px-3 py-1 rounded-full bg-black/65 backdrop-blur-md border border-emerald-500/30 text-xs font-bold text-emerald-200 flex items-center gap-2 shadow">
+                        <span><i class="fa-solid fa-horse text-amber-400 mr-1"></i>全屏直線競速模式 (等距平均站位・支援巨型馬匹)</span>
+                        <span id="pinnedHorseBanner" class="text-amber-300 hidden border-l border-emerald-500/40 pl-2"></span>
+                    </div>
+                </div>
+                <div class="px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md border border-emerald-500/30 text-[11px] font-mono text-emerald-300">
+                    <span id="fpsCounter">60 FPS</span>
+                </div>
+            </div>
+
+            <!-- Big Center Countdown Overlay (3, 2, 1, GO!) -->
+            <div id="gateCountdownOverlay" class="hidden absolute inset-0 z-20 bg-black/55 backdrop-blur-sm flex flex-col items-center justify-center pointer-events-none">
+                <div id="gateCountdownNumber" class="text-7xl sm:text-9xl font-black text-amber-400 drop-shadow-[0_0_35px_rgba(251,191,36,0.8)] animate-pulse-fast">
+                    3
+                </div>
+                <div class="mt-2 text-lg sm:text-2xl font-bold text-white tracking-widest uppercase">
+                    各就各位・準備開閘
+                </div>
+            </div>
+
+            <!-- 100% Full-Height, Zero-Scroll Race Canvas -->
+            <canvas id="raceCanvas" class="block w-full h-full"></canvas>
+        </main>
+    </div>
+
+    <!-- RESULTS & TOP 10 PODIUM MODAL -->
+    <div id="resultsModal" class="fixed inset-0 z-40 bg-black/80 backdrop-blur-md hidden items-center justify-center p-3 sm:p-6 overflow-y-auto">
+        <div class="glass-panel w-full max-w-5xl rounded-3xl border-2 border-amber-400/50 neon-gold-shadow overflow-hidden my-auto flex flex-col max-h-[92vh]">
+            
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-950 px-5 py-4 border-b border-amber-400/30 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center text-2xl font-black shadow-lg">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                            <span>公司幸運賽馬大抽獎・Top 10 得獎名單</span>
+                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 font-mono">WINNERS</span>
+                        </h2>
+                        <p id="resultsSubtitle" class="text-xs text-emerald-300/80">總參與人數：120 人 ｜ 抽獎歷時：15.00 秒</p>
+                    </div>
+                </div>
+                <button id="closeResultsModalBtn" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body (Scrollable) -->
+            <div class="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1">
+                
+                <!-- Top 3 Elevated Podium Cards -->
+                <div id="top3PodiumContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <!-- Populated via JS: Silver (2nd), Gold (1st), Bronze (3rd) -->
+                </div>
+
+                <!-- Tabs & Copy Controls Bar -->
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-emerald-500/25 pb-3">
+                    <div class="flex rounded-xl bg-black/50 p-1 border border-emerald-500/30">
+                        <button id="modalTabTop10Btn" class="px-4 py-1.5 rounded-lg text-xs sm:text-sm font-extrabold bg-amber-500 text-slate-950 transition">
+                            <i class="fa-solid fa-medal mr-1"></i> Top 10 得獎榮譽榜
+                        </button>
+                        <button id="modalTabAllBtn" class="px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold text-emerald-200 hover:text-white transition">
+                            <i class="fa-solid fa-list-ol mr-1"></i> 完整衝線排名 (<span id="modalTotalCount">120</span>)
+                        </button>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button id="copyTop10Btn" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow transition">
+                            <i class="fa-regular fa-copy"></i> 一鍵複製 Top 10 名單
+                        </button>
+                        <button id="copyAllRankingsBtn" class="px-3.5 py-1.5 rounded-xl bg-emerald-900/80 hover:bg-emerald-800 border border-emerald-500/40 text-emerald-100 font-semibold text-xs sm:text-sm flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-clipboard-check"></i> 複製完整排名
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search input for Full Ranking List (shown when All tab is active) -->
+                <div id="fullRankingSearchWrapper" class="hidden">
+                    <div class="relative max-w-md">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-emerald-400/70 text-xs"></i>
+                        <input id="resultsSearchInput" type="text" placeholder="搜尋同事姓名或編號（例如：#18 或 Alex）..."
+                            class="w-full pl-9 pr-4 py-2 rounded-xl bg-black/60 border border-emerald-500/40 text-sm text-white focus:border-amber-400 focus:outline-none select-text">
+                    </div>
+                </div>
+
+                <!-- Rankings Table (Clean: Rank, Number, Color Outlook, Name, Finish Time) -->
+                <div class="overflow-x-auto rounded-2xl border border-emerald-500/25 bg-black/40">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-emerald-500/25 text-[11px] uppercase tracking-wider text-emerald-300/80 bg-emerald-950/60">
+                                <th class="py-3 px-4 font-bold">名次 (Rank)</th>
+                                <th class="py-3 px-4 font-bold">編號</th>
+                                <th class="py-3 px-4 font-bold">賽馬與騎師配色 (Outlook)</th>
+                                <th class="py-3 px-4 font-bold">得獎者姓名 (Name)</th>
+                                <th class="py-3 px-4 font-bold text-right">衝線時間 (Time)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody" class="divide-y divide-emerald-500/15 text-xs sm:text-sm">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Modal Footer with Next Round Options -->
+            <div class="bg-black/60 px-5 py-3.5 border-t border-emerald-500/25 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <button id="removeTop10AndRaceBtn" class="px-3.5 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-rose-200 font-bold text-xs sm:text-sm flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-user-minus"></i> 剔除 Top 10 已中獎者再抽下一輪
+                    </button>
+                    <button id="removeTop1AndRaceBtn" class="px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/30 text-amber-200 font-bold text-xs sm:text-sm flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-crown"></i> 僅剔除頭獎得主再抽
+                    </button>
+                </div>
+                <div class="flex items-center gap-2 ml-auto">
+                    <button id="raceAgainSameRosterBtn" class="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black text-xs sm:text-sm flex items-center gap-2 shadow-lg transition">
+                        <i class="fa-solid fa-rotate-right"></i> 原班人馬再跑一場
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ============================================================================
+         * 1. HORSE COLOR & JOCKEY SILK OUTLOOK DEFINITIONS (12 HIGH-CONTRAST SCHEMES)
+         * ============================================================================ */
+        const HORSE_OUTLOOK_PALETTE = [
+            {
+                id: 'crimson',
+                name: '炫彩紅 Crimson',
+                silkPrimary: '#ef4444',
+                silkSecondary: '#fef08a',
+                horseCoat: '#991b1b',
+                horseMane: '#450a0a',
+                badgeBg: 'rgba(239, 68, 68, 0.25)',
+                badgeBorder: '#f87171',
+                textColor: '#fecaca'
+            },
+            {
+                id: 'aurora_blue',
+                name: '極光藍 Aurora',
+                silkPrimary: '#3b82f6',
+                silkSecondary: '#ffffff',
+                horseCoat: '#1e40af',
+                horseMane: '#93c5fd',
+                badgeBg: 'rgba(59, 130, 246, 0.25)',
+                badgeBorder: '#60a5fa',
+                textColor: '#bfdbfe'
+            },
+            {
+                id: 'imperial_gold',
+                name: '帝王金 Gold',
+                silkPrimary: '#eab308',
+                silkSecondary: '#78350f',
+                horseCoat: '#b45309',
+                horseMane: '#fef08a',
+                badgeBg: 'rgba(234, 179, 8, 0.25)',
+                badgeBorder: '#facc15',
+                textColor: '#fef08a'
+            },
+            {
+                id: 'emerald',
+                name: '翡翠綠 Emerald',
+                silkPrimary: '#10b981',
+                silkSecondary: '#ecfdf5',
+                horseCoat: '#065f46',
+                horseMane: '#6ee7b7',
+                badgeBg: 'rgba(16, 185, 129, 0.25)',
+                badgeBorder: '#34d399',
+                textColor: '#a7f3d0'
+            },
+            {
+                id: 'neon_purple',
+                name: '電光紫 Purple',
+                silkPrimary: '#a855f7',
+                silkSecondary: '#fde047',
+                horseCoat: '#6b21a8',
+                horseMane: '#e9d5ff',
+                badgeBg: 'rgba(168, 85, 247, 0.25)',
+                badgeBorder: '#c084fc',
+                textColor: '#e9d5ff'
+            },
+            {
+                id: 'cyber_cyan',
+                name: '賽博青 Cyan',
+                silkPrimary: '#06b6d4',
+                silkSecondary: '#0f172a',
+                horseCoat: '#155e75',
+                horseMane: '#a5f3fc',
+                badgeBg: 'rgba(6, 182, 212, 0.25)',
+                badgeBorder: '#22d3ee',
+                textColor: '#cffafe'
+            },
+            {
+                id: 'sunset_orange',
+                name: '烈焰橙 Orange',
+                silkPrimary: '#f97316',
+                silkSecondary: '#fffbeb',
+                horseCoat: '#9a3412',
+                horseMane: '#fed7aa',
+                badgeBg: 'rgba(249, 115, 22, 0.25)',
+                badgeBorder: '#fb923c',
+                textColor: '#ffedd5'
+            },
+            {
+                id: 'magenta',
+                name: '霓虹粉 Magenta',
+                silkPrimary: '#ec4899',
+                silkSecondary: '#fdf2f8',
+                horseCoat: '#9d174d',
+                horseMane: '#fbcfe8',
+                badgeBg: 'rgba(236, 72, 153, 0.25)',
+                badgeBorder: '#f472b6',
+                textColor: '#fce7f3'
+            },
+            {
+                id: 'lightning_lime',
+                name: '閃電綠 Lime',
+                silkPrimary: '#84cc16',
+                silkSecondary: '#1a2e05',
+                horseCoat: '#3f6212',
+                horseMane: '#d9f99d',
+                badgeBg: 'rgba(132, 204, 22, 0.25)',
+                badgeBorder: '#a3e635',
+                textColor: '#ecfccb'
+            },
+            {
+                id: 'royal_indigo',
+                name: '皇家靛 Indigo',
+                silkPrimary: '#6366f1',
+                silkSecondary: '#fbbf24',
+                horseCoat: '#3730a3',
+                horseMane: '#c7d2fe',
+                badgeBg: 'rgba(99, 102, 241, 0.25)',
+                badgeBorder: '#818cf8',
+                textColor: '#e0e7ff'
+            },
+            {
+                id: 'galaxy_silver',
+                name: '銀河白 Silver',
+                silkPrimary: '#e2e8f0',
+                silkSecondary: '#0f172a',
+                horseCoat: '#475569',
+                horseMane: '#f8fafc',
+                badgeBg: 'rgba(226, 232, 240, 0.25)',
+                badgeBorder: '#cbd5e1',
+                textColor: '#f1f5f9'
+            },
+            {
+                id: 'coral_red',
+                name: '珊瑚紅 Coral',
+                silkPrimary: '#fb7185',
+                silkSecondary: '#fff1f2',
+                horseCoat: '#881337',
+                horseMane: '#fecdd3',
+                badgeBg: 'rgba(251, 113, 133, 0.25)',
+                badgeBorder: '#fda4af',
+                textColor: '#ffe4e6'
+            }
+        ];
+
+        const DEMO_DEPARTMENTS = ['Tech', 'Product', 'Design', 'Marketing', 'Sales', 'Finance', 'HR', 'Ops'];
+        const DEMO_FIRST_NAMES = [
+            'Alex Chan', 'Agnes Wong', 'Brandon Lam', 'Carmen Yip', 'Calvin Ho', 'Chloe Leung',
+            'Daniel Tse', 'Derek Ng', 'Eason Kwok', 'Elaine Chow', 'Felix Tang', 'Fiona Mak',
+            'Gabriel Lo', 'Grace Cheung', 'Henry Lau', 'Hilary Poon', 'Ivan Ma', 'Iris Tsang',
+            'Jason Fung', 'Jasmine Siu', 'Kelvin Au', 'Kelly Wan', 'Leo Yuen', 'Mandy Ko',
+            'Nathan Chu', 'Olivia Sin', 'Patrick Tam', 'Queenie Lai', 'faymond Pang', 'Rachel Shum'
+        ];
+
+        function generateDemoNames(count = 120) {
+            const list = [];
+            for (let i = 1; i <= count; i++) {
+                const staffName = DEMO_FIRST_NAMES[(i - 1) % DEMO_FIRST_NAMES.length];
+                const dept = DEMO_DEPARTMENTS[(i * 3) % DEMO_DEPARTMENTS.length];
+                list.push(`${staffName} (${dept} #${i})`);
+            }
+            return list;
+        }
+
+        /* ============================================================================
+         * 2. WEB AUDIO API SOUND ENGINE (No external audio files required)
+         * ============================================================================ */
+        class RaceSoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+                this.lastHoofTime = 0;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playBeep(freq = 660, duration = 0.15, type = 'sine', gainVal = 0.15) {
+                if (!this.enabled) return;
+                try {
+                    this.init();
+                    if (!this.ctx) return;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch (e) {}
+            }
+
+            playStartGateBell() {
+                if (!this.enabled) return;
+                try {
+                    this.init();
+                    if (!this.ctx) return;
+                    const now = this.ctx.currentTime;
+                    [1180, 1560, 2120].forEach((freq, idx) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.04);
+                        gain.gain.setValueAtTime(0.18, now + idx * 0.04);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + idx * 0.04);
+                        osc.stop(now + 0.56);
+                    });
+                } catch (e) {}
+            }
+
+            playHoofbeat(intensity = 1) {
+                if (!this.enabled) return;
+                const nowMs = performance.now();
+                if (nowMs - this.lastHoofTime < 135) return;
+                this.lastHoofTime = nowMs;
+                try {
+                    this.init();
+                    if (!this.ctx) return;
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(110 + Math.random() * 35, now);
+                    osc.frequency.exponentialRampToValueAtTime(42, now + 0.06);
+                    gain.gain.setValueAtTime(0.05 * intensity, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.065);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.07);
+                } catch (e) {}
+            }
+
+            playVictoryFanfare() {
+                if (!this.enabled) return;
+                try {
+                    this.init();
+                    if (!this.ctx) return;
+                    const notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50];
+                    const times = [0, 0.13, 0.26, 0.39, 0.55, 0.70];
+                    const durations = [0.12, 0.12, 0.12, 0.15, 0.12, 0.45];
+                    notes.forEach((n, i) => {
+                        setTimeout(() => {
+                            this.playBeep(n, durations[i], 'triangle', 0.18);
+                        }, times[i] * 1000);
+                    });
+                } catch (e) {}
+            }
+        }
+
+        const soundEngine = new RaceSoundEngine();
+
+        /* ============================================================================
+         * 3. APPLICATION STATE & HORSE DATA STRUCTURES (STRICT STRAIGHT LINE & EVEN SPACING)
+         * ============================================================================ */
+        const state = {
+            participants: [],       // Array of horse objects
+            raceDurationSec: 15,    // Configured race duration in seconds
+            horseScale: 1.8,        // Large visual scale for horses & riders (user adjustable 0.8x - 4.5x)
+            labelMode: 'all',       // 'all' (顯示全部名字) | 'leaders' (突顯領先 Top 15 名字)
+            pinnedHorseId: null,    // Optional horse ID highlighted by user
+            raceState: 'idle',      // 'idle' | 'countdown' | 'racing' | 'finished'
+            raceStartTime: 0,
+            elapsedSec: 0,
+            finishedHorses: [],     // Ordered list of horses that crossed finish line
+            liveRankMap: new Map(), // Real-time rank lookup (horse.id -> 1..N)
+            lastCommentaryTime: 0,
+            dustParticles: [],      // Turf dust particles for visual immersion
+            cameraFlashAlpha: 0,    // Photo-finish flash effect
+            fpsFrames: 0,
+            fpsLastCheck: performance.now(),
+            currentFps: 60,
+            modalActiveTab: 'top10' // 'top10' | 'all'
+        };
+
+        // Helper to set horse scale and sync slider & text badge
+        function setHorseScale(newScale) {
+            const clamped = Math.max(0.8, Math.min(4.5, Math.round(newScale * 10) / 10));
+            state.horseScale = clamped;
+            const slider = document.getElementById('horseScaleSlider');
+            const valLabel = document.getElementById('horseScaleValue');
+            if (slider) slider.value = clamped;
+            if (valLabel) valLabel.textContent = `${clamped.toFixed(1)}x`;
+        }
+
+        // Automatically pick an impressive horse size when loading a roster count
+        function getRecommendedHorseScale(count) {
+            if (count <= 6) return 3.2;
+            if (count <= 12) return 2.6;
+            if (count <= 25) return 2.1;
+            if (count <= 60) return 1.8;
+            return 1.6;
+        }
+
+        // Helper to generate inline SVG of a racehorse with its assigned Jockey Silk & Color Outlook
+        function createHorseBadgeSVG(outlook, horseNum, size = 36) {
+            return `
+            <svg width="${size}" height="${size}" viewBox="0 0 48 48" class="shrink-0 drop-shadow">
+                <circle cx="24" cy="24" r="22" fill="${outlook.badgeBg}" stroke="${outlook.badgeBorder}" stroke-width="2"/>
+                <path d="M14 36 L18 20 L25 14 L33 16 L35 21 L28 23 L26 36 Z" fill="${outlook.horseCoat}" stroke="#ffffff33" stroke-width="1"/>
+                <path d="M16 26 L20 17 L25 14 L22 25 Z" fill="${outlook.horseMane}"/>
+                <circle cx="22" cy="12" r="4" fill="${outlook.silkPrimary}" stroke="${outlook.silkSecondary}" stroke-width="1.5"/>
+                <path d="M15 28 C15 21, 27 21, 27 28 Z" fill="${outlook.silkPrimary}" stroke="${outlook.silkSecondary}" stroke-width="1.5"/>
+                <rect x="24" y="26" width="16" height="12" rx="3" fill="#091912" stroke="${outlook.badgeBorder}" stroke-width="1.2"/>
+                <text x="32" y="35" text-anchor="middle" fill="#ffffff" font-size="8.5" font-family="JetBrains Mono, monospace" font-weight="800">#${horseNum}</text>
+            </svg>`;
+        }
+
+        // Parse textarea lines into structured horse objects with strictly EVEN vertical spacing
+        function syncParticipantsFromTextarea(shuffleColors = false, autoAdjustScale = false) {
+            const rawText = document.getElementById('namesTextarea').value;
+            const lines = rawText
+                .split(/\r?\n/)
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
+
+            const previousMap = new Map();
+            if (!shuffleColors) {
+                state.participants.forEach(p => previousMap.set(p.name, p));
+            }
+
+            const total = Math.max(1, lines.length);
+
+            if (autoAdjustScale) {
+                setHorseScale(getRecommendedHorseScale(total));
+            }
+
+            state.participants = lines.map((name, idx) => {
+                const number = idx + 1;
+                const prev = previousMap.get(name);
+                const outlookIndex = shuffleColors
+                    ? Math.floor(Math.random() * HORSE_OUTLOOK_PALETTE.length)
+                    : (prev ? prev.outlookIndex : idx % HORSE_OUTLOOK_PALETTE.length);
+                const outlook = HORSE_OUTLOOK_PALETTE[outlookIndex];
+
+                // Strictly EVEN vertical distribution from top to bottom:
+                // Every horse gets an exact equidistant horizontal lane (0.5/total, 1.5/total, ..., (total-0.5)/total)
+                const evenYRatio = (idx + 0.5) / total;
+
+                return {
+                    id: `horse_${number}_${idx}`,
+                    number,
+                    name,
+                    outlookIndex,
+                    outlook,
+                    baseYRatio: evenYRatio,
+                    yRatio: evenYRatio,   // Never changes vertically — runs in a pure straight horizontal line!
+                    startXStagger: 0,     // All horses line up cleanly along the starting gate line
+                    progress: 0,          // 0.0 (Start Gate) to 1.0 (Finish Line)
+                    finishTime: null,
+                    finishRank: null,
+                    gallopPhase: (idx * 1.3) % (Math.PI * 2),
+                    pacingProfile: null
+                };
+            });
+
+            // Initialize default live ranks
+            state.liveRankMap.clear();
+            state.participants.forEach((h, i) => state.liveRankMap.set(h.id, i + 1));
+
+            // Update UI counters
+            document.getElementById('headerHorseCount').textContent = state.participants.length;
+            document.getElementById('sidebarCountBadge').textContent = `共 ${state.participants.length} 人`;
+            document.getElementById('modalTotalCount').textContent = state.participants.length;
+
+            renderRosterList();
+            resizeAndDrawCanvas();
+        }
+
+        /**
+         * Generates a randomized, multi-phase speed profile for every horse so that:
+         * - Different horses surge and overtake in the early, middle, and final straight segments
+         * - The #1 winning horse crosses `progress = 1.0` accurately at `state.raceDurationSec`
+         */
+        function generateRacePacingProfiles() {
+            const totalHorses = state.participants.length;
+            if (totalHorses === 0) return;
+
+            const duration = Math.max(5, Number(state.raceDurationSec) || 15);
+
+            const finishOffsets = [];
+            for (let i = 0; i < totalHorses; i++) {
+                if (i === 0) {
+                    finishOffsets.push(0); // Winner hits finish line right as countdown reaches 00:00!
+                } else if (i < 10) {
+                    finishOffsets.push(0.035 * i + Math.pow(i / 10, 1.3) * (duration * 0.055) + Math.random() * 0.04);
+                } else {
+                    const ratio = i / totalHorses;
+                    finishOffsets.push(duration * (0.05 + ratio * 0.16 + Math.random() * 0.025));
+                }
+            }
+
+            // Unbiased Fisher-Yates shuffle of target ranks (Fair company lucky draw!)
+            const indices = Array.from({ length: totalHorses }, (_, i) => i);
+            for (let i = indices.length - 1; i > 0; i--) {
+                const r = Math.floor(Math.random() * (i + 1));
+                [indices[i], indices[r]] = [indices[r], indices[i]];
+            }
+
+            state.participants.forEach((horse, idx) => {
+                const assignedRankIndex = indices[idx];
+                const targetFinishTime = duration + finishOffsets[assignedRankIndex];
+
+                const w1 = 0.60 + Math.random() * 0.90;
+                const w2 = 0.55 + Math.random() * 0.95;
+                const w3 = 0.55 + Math.random() * 0.95;
+                const w4 = assignedRankIndex < 12
+                    ? (1.08 + Math.random() * 0.75)
+                    : (0.65 + Math.random() * 0.85);
+
+                const avgWeight = (w1 + w2 + w3 + w4) / 4;
+                const normWeights = [w1 / avgWeight, w2 / avgWeight, w3 / avgWeight, w4 / avgWeight];
+
+                horse.progress = 0;
+                horse.finishTime = null;
+                horse.finishRank = null;
+                horse.gallopPhase = Math.random() * Math.PI * 2;
+                horse.pacingProfile = {
+                    targetFinishTime,
+                    weights: normWeights,
+                    freq1: 1.5 + Math.random() * 2.2,
+                    phase1: Math.random() * Math.PI * 2
+                };
+            });
+        }
+
+        function evaluateHorseProgress(horse, elapsedSec) {
+            const prof = horse.pacingProfile;
+            if (!prof) return 0;
+
+            const u = elapsedSec / prof.targetFinishTime;
+            const [s0, s1, s2, s3] = prof.weights;
+
+            let baseProgress = 0;
+            if (u <= 0) {
+                return 0;
+            } else if (u < 0.25) {
+                baseProgress = u * s0;
+            } else if (u < 0.50) {
+                baseProgress = 0.25 * s0 + (u - 0.25) * s1;
+            } else if (u < 0.75) {
+                baseProgress = 0.25 * (s0 + s1) + (u - 0.50) * s2;
+            } else if (u <= 1.0) {
+                baseProgress = 0.25 * (s0 + s1 + s2) + (u - 0.75) * s3;
+            } else {
+                baseProgress = 1.0 + (u - 1.0) * s3 * 0.65;
+            }
+
+            const waveWindow = u < 1.0 ? Math.sin(u * Math.PI) : 0;
+            const microSurge = Math.sin(u * Math.PI * prof.freq1 * 2 + prof.phase1) * 0.022 * waveWindow;
+
+            return Math.max(0, baseProgress + microSurge);
+        }
+
+        /* ============================================================================
+         * 4. SIDEBAR ROSTER & COLOR PALETTE UI RENDERING (NO ODDS)
+         * ============================================================================ */
+        function renderColorSwatches() {
+            const container = document.getElementById('colorPaletteSwatches');
+            container.innerHTML = HORSE_OUTLOOK_PALETTE.map(c => `
+                <div title="${c.name}" class="h-5 rounded-md border flex items-center justify-center overflow-hidden shadow-sm"
+                     style="background:${c.silkPrimary}; border-color:${c.badgeBorder}">
+                    <span class="w-2 h-2 rounded-full" style="background:${c.silkSecondary}"></span>
+                </div>
+            `).join('');
+        }
+
+        function renderRosterList() {
+            const container = document.getElementById('rosterListContainer');
+            const query = (document.getElementById('rosterSearchInput').value || '').trim().toLowerCase();
+
+            const filtered = state.participants.filter(p =>
+                !query ||
+                p.name.toLowerCase().includes(query) ||
+                `#${p.number}`.includes(query) ||
+                p.outlook.name.toLowerCase().includes(query)
+            );
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-xs text-emerald-300/60 text-center py-6">找不到符合的同事名字</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.slice(0, 200).map(p => {
+                const isPinned = state.pinnedHorseId === p.id;
+                return `
+                <div data-horse-id="${p.id}"
+                     class="roster-item cursor-pointer p-2 rounded-xl border transition flex items-center justify-between gap-2 ${
+                         isPinned
+                             ? 'bg-amber-500/20 border-amber-400 shadow'
+                             : 'bg-black/40 hover:bg-emerald-950/80 border-emerald-500/20'
+                     }">
+                    <div class="flex items-center gap-2 min-w-0">
+                        ${createHorseBadgeSVG(p.outlook, p.number, 32)}
+                        <div class="min-w-0">
+                            <div class="text-xs font-bold text-white truncate">${escapeHtml(p.name)}</div>
+                            <div class="text-[10px] flex items-center gap-1.5" style="color:${p.outlook.textColor}">
+                                <span>編號 #${p.number}</span>
+                                <span class="text-emerald-400/50">•</span>
+                                <span>${p.outlook.name}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="shrink-0 text-xs px-2 py-1 rounded-lg ${
+                        isPinned ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-white/5 text-emerald-300 hover:bg-white/10'
+                    }">
+                        <i class="fa-solid fa-crosshairs"></i>
+                    </button>
+                </div>`;
+            }).join('');
+
+            container.querySelectorAll('.roster-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = el.getAttribute('data-horse-id');
+                    state.pinnedHorseId = (state.pinnedHorseId === id) ? null : id;
+                    updatePinnedBanner();
+                    renderRosterList();
+                    drawRaceFrame();
+                });
+            });
+        }
+
+        function updatePinnedBanner() {
+            const banner = document.getElementById('pinnedHorseBanner');
+            if (!state.pinnedHorseId) {
+                banner.classList.add('hidden');
+                return;
+            }
+            const horse = state.participants.find(p => p.id === state.pinnedHorseId);
+            if (!horse) {
+                banner.classList.add('hidden');
+                return;
+            }
+            banner.innerHTML = `<i class="fa-solid fa-crosshairs mr-1"></i>聚光燈鎖定: #${horse.number} ${escapeHtml(horse.name)}`;
+            banner.classList.remove('hidden');
+        }
+
+        /* ============================================================================
+         * 5. FULL-VIEWPORT 2.5D OVERLAPPING HORSE & RIDER CANVAS ENGINE
+         * ============================================================================ */
+        const canvas = document.getElementById('raceCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeAndDrawCanvas() {
+            const viewport = document.getElementById('canvasViewport');
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            const width = viewport.clientWidth || window.innerWidth;
+            const height = viewport.clientHeight || (window.innerHeight - 95);
+
+            // Always fit 100% inside the single screen viewport without any scrollbars!
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+            canvas.width = Math.floor(width * dpr);
+            canvas.height = Math.floor(height * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            drawRaceFrame();
+        }
+
+        function drawRaceFrame() {
+            const width = parseFloat(canvas.style.width) || window.innerWidth;
+            const height = parseFloat(canvas.style.height) || (window.innerHeight - 95);
+
+            ctx.clearRect(0, 0, width, height);
+
+            const trackTop = 48;
+            const trackBottom = height - 30;
+            const trackHeight = Math.max(200, trackBottom - trackTop);
+
+            // Track horizontal margins (Start Gate on Left, Finish Line on Right)
+            const startX = 115;
+            const finishX = width - 110;
+            const raceDistancePx = Math.max(240, finishX - startX);
+
+            // 1. Draw Rich Night Turf Grass Stripes
+            const numStripes = 18;
+            const stripeW = width / numStripes;
+            for (let i = 0; i < numStripes; i++) {
+                ctx.fillStyle = i % 2 === 0 ? '#072619' : '#0a3121';
+                ctx.fillRect(i * stripeW, 0, stripeW + 1, height);
+            }
+
+            // Compute vertical usable lane region so horses are evenly spaced from top to bottom
+            const totalHorses = state.participants.length;
+            const padTop = trackTop + (totalHorses <= 15 ? 20 : 34);
+            const padBottom = trackBottom - (totalHorses <= 15 ? 16 : 22);
+            const usableH = Math.max(120, padBottom - padTop);
+
+            // If participant count is <= 25, render crisp individual horizontal lane lines & gate stall numbers
+            // so 5–10 or 20 horses look unmistakably structured and evenly spaced!
+            if (totalHorses > 0 && totalHorses <= 25) {
+                const laneSlotH = usableH / totalHorses;
+                for (let i = 0; i <= totalHorses; i++) {
+                    const lineY = padTop + i * laneSlotH;
+                    // Alternating subtle turf lane tint
+                    if (i < totalHorses && i % 2 === 1) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.022)';
+                        ctx.fillRect(0, lineY, width, laneSlotH);
+                    }
+                    // Horizontal lane divider line
+                    ctx.save();
+                    ctx.strokeStyle = 'rgba(52, 211, 153, 0.22)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([10, 8]);
+                    ctx.beginPath();
+                    ctx.moveTo(startX - 35, lineY);
+                    ctx.lineTo(finishX + 12, lineY);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // Starting Gate Stall Box & Lane Number on the left
+                    if (i < totalHorses) {
+                        const centerY = lineY + laneSlotH * 0.5;
+                        ctx.fillStyle = 'rgba(4, 20, 13, 0.78)';
+                        ctx.strokeStyle = 'rgba(52, 211, 153, 0.45)';
+                        ctx.lineWidth = 1.2;
+                        ctx.beginPath();
+                        ctx.roundRect(startX - 32, centerY - 10, 24, 20, 4);
+                        ctx.fill();
+                        ctx.stroke();
+
+                        ctx.fillStyle = '#6ee7b7';
+                        ctx.font = '800 10px "JetBrains Mono", monospace';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(`${i + 1}`, startX - 20, centerY + 0.5);
+                    }
+                }
+            } else {
+                // For large packs (> 25 horses), draw subtle horizontal turf mowing bands
+                const hBands = 6;
+                const bandH = trackHeight / hBands;
+                for (let b = 0; b < hBands; b++) {
+                    if (b % 2 === 1) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.015)';
+                        ctx.fillRect(0, trackTop + b * bandH, width, bandH);
+                    }
+                }
+            }
+
+            // 2. Top & Bottom Turf Running Rails (欄杆)
+            ctx.fillStyle = '#04140d';
+            ctx.fillRect(0, 0, width, trackTop);
+            ctx.fillRect(0, trackBottom, width, height - trackBottom);
+
+            // White & Emerald Rail Bars with Fence Posts
+            ctx.strokeStyle = '#34d399';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(0, trackTop);
+            ctx.lineTo(width, trackTop);
+            ctx.moveTo(0, trackBottom);
+            ctx.lineTo(width, trackBottom);
+            ctx.stroke();
+
+            // Distance Markers along the track
+            const markers = [
+                { pct: 0, label: 'START 起跑閘門' },
+                { pct: 0.25, label: '25% 賽段' },
+                { pct: 0.50, label: '50% 中段競逐' },
+                { pct: 0.75, label: '75% 最後直路衝刺' },
+                { pct: 1.0, label: 'FINISH 終點線' }
+            ];
+
+            markers.forEach(m => {
+                const mx = startX + m.pct * raceDistancePx;
+                ctx.save();
+                ctx.strokeStyle = m.pct === 1.0 ? 'rgba(251, 191, 36, 0.75)' : 'rgba(52, 211, 153, 0.18)';
+                ctx.lineWidth = m.pct === 1.0 ? 2.5 : 1.2;
+                ctx.setLineDash(m.pct === 1.0 ? [] : [8, 8]);
+                ctx.beginPath();
+                ctx.moveTo(mx, trackTop);
+                ctx.lineTo(mx, trackBottom);
+                ctx.stroke();
+                ctx.restore();
+
+                ctx.fillStyle = m.pct === 1.0 ? '#fbbf24' : '#6ee7b7';
+                ctx.font = '800 11px "JetBrains Mono", "Noto Sans TC", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(m.label, mx, trackBottom + 19);
+            });
+
+            // 3. Draw Checkered Finish Line & Mirror Post
+            const checkerSize = 9;
+            for (let y = trackTop; y < trackBottom; y += checkerSize) {
+                const row = Math.floor((y - trackTop) / checkerSize);
+                ctx.fillStyle = row % 2 === 0 ? '#ffffff' : '#111827';
+                ctx.fillRect(finishX - checkerSize, y, checkerSize, Math.min(checkerSize, trackBottom - y));
+                ctx.fillStyle = row % 2 === 0 ? '#ef4444' : '#ffffff';
+                ctx.fillRect(finishX, y, checkerSize, Math.min(checkerSize, trackBottom - y));
+            }
+
+            // Winning Post Disc on Top Rail
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.arc(finishX - 4, trackTop - 13, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#fef08a';
+            ctx.lineWidth = 2.2;
+            ctx.stroke();
+
+            // 4. Draw Turf Dust Particles
+            drawAndStepDustParticles();
+
+            // 5. Compute Screen Coordinates (X, Y) for Every Horse and Sort by Y for 2.5D Overlapping!
+            const renderList = state.participants.map(horse => {
+                const hx = startX + horse.progress * raceDistancePx;
+                // Strictly straight horizontal line at horse.baseYRatio!
+                const hy = padTop + horse.baseYRatio * usableH;
+                const liveRank = horse.finishRank || state.liveRankMap.get(horse.id) || 999;
+                const isPinned = horse.id === state.pinnedHorseId;
+                return { horse, hx, hy, liveRank, isPinned };
+            });
+
+            // Painter's Algorithm (2.5D Depth Sort):
+            // Horses higher up on the screen (smaller Y) are drawn first; horses lower on the screen overlap in front!
+            renderList.sort((a, b) => a.hy - b.hy);
+
+            // Pass 1: Draw all LARGE Horse & Jockey Bodies + Standard Name Tags in 2.5D Y-order
+            renderList.forEach(item => {
+                const isTop10 = item.liveRank <= 10;
+                drawLargeHorseAndRider(
+                    ctx,
+                    item.horse,
+                    item.hx,
+                    item.hy,
+                    state.horseScale,
+                    item.liveRank,
+                    item.isPinned,
+                    !isTop10 && !item.isPinned // Draw standard name tag now; Top 10 & Pinned get priority overlay pass
+                );
+            });
+
+            // Pass 2: Priority Foreground Pass for Top 10 Leaders & Pinned Horse Name Badges
+            // So even in a 120-horse stampede, the leading horses and their names are NEVER obscured!
+            renderList
+                .filter(item => item.liveRank <= 10 || item.isPinned)
+                .sort((a, b) => b.liveRank - a.liveRank) // Draw #1 Champion on very top
+                .forEach(item => {
+                    drawHorseNameBadge(
+                        ctx,
+                        item.horse,
+                        item.hx,
+                        item.hy,
+                        state.horseScale,
+                        item.liveRank,
+                        item.isPinned,
+                        true
+                    );
+                });
+
+            // 6. Photo-Finish Camera Flash Effect when winner crosses the line
+            if (state.cameraFlashAlpha > 0.01) {
+                ctx.fillStyle = `rgba(255, 250, 220, ${state.cameraFlashAlpha})`;
+                ctx.fillRect(0, 0, width, height);
+                state.cameraFlashAlpha *= 0.86;
+            }
+        }
+
+        // Draws a LARGE, vivid, detailed Horse & Jockey sprite that overlaps naturally with other horses
+        function drawLargeHorseAndRider(ctx, horse, x, y, scale, liveRank, isPinned, drawTagNow) {
+            const outlook = horse.outlook;
+            const isRacing = state.raceState === 'racing';
+
+            // Galloping bob, body pitch & leg stride animation
+            const phase = horse.gallopPhase;
+            const stride = isRacing ? Math.sin(phase) : 0;
+            const strideCos = isRacing ? Math.cos(phase) : 0;
+            const bobY = isRacing ? Math.abs(strideCos) * -3.5 * (scale / 1.6) : 0;
+            const bodyTilt = isRacing ? Math.sin(phase) * 0.055 : 0;
+
+            ctx.save();
+            ctx.translate(x, y + bobY);
+            ctx.scale(scale, scale);
+
+            // Golden Spotlight Halo if Pinned or #1 Leader during race
+            if (isPinned || (liveRank === 1 && state.raceState !== 'idle')) {
+                ctx.fillStyle = isPinned ? 'rgba(251, 191, 36, 0.35)' : 'rgba(251, 191, 36, 0.20)';
+                ctx.beginPath();
+                ctx.ellipse(-14, -2, 26, 15, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Ground Shadow on Turf (stays anchored near turf level)
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
+            ctx.beginPath();
+            ctx.ellipse(-13, 10 - bobY / scale, 16, 4.2, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.rotate(bodyTilt);
+
+            // --- 1. ANIMATED GALLOPING LEGS (4 distinct articulated legs) ---
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // Far Hind Leg & Far Front Leg (slightly darker shade for depth)
+            ctx.strokeStyle = '#1f2937';
+            ctx.lineWidth = 2.8;
+            ctx.beginPath();
+            ctx.moveTo(-22, 2);
+            ctx.lineTo(-27 - strideCos * 7, 10);
+            ctx.moveTo(-5, 2);
+            ctx.lineTo(1 - strideCos * 7, 9.5);
+            ctx.stroke();
+
+            // Near Hind Leg & Near Front Leg (Horse Coat Color + White Hooves)
+            ctx.strokeStyle = outlook.horseCoat;
+            ctx.lineWidth = 3.2;
+            ctx.beginPath();
+            ctx.moveTo(-20, 2);
+            ctx.lineTo(-24 + stride * 8, 10);
+            ctx.moveTo(-4, 2);
+            ctx.lineTo(5 + stride * 8, 9);
+            ctx.stroke();
+
+            // White Hoof highlights on near legs
+            ctx.strokeStyle = '#f8fafc';
+            ctx.lineWidth = 2.6;
+            ctx.beginPath();
+            ctx.moveTo(-24 + stride * 7.2, 9);
+            ctx.lineTo(-24 + stride * 8, 10);
+            ctx.moveTo(4 + stride * 7.2, 8.2);
+            ctx.lineTo(5 + stride * 8, 9);
+            ctx.stroke();
+
+            // --- 2. FLOWING TAIL ---
+            ctx.strokeStyle = outlook.horseMane;
+            ctx.lineWidth = 3.2;
+            ctx.beginPath();
+            ctx.moveTo(-25, -3);
+            ctx.quadraticCurveTo(-33, -6 + stride * 3, -37, 0 + stride * 4);
+            ctx.stroke();
+
+            // --- 3. MUSCULAR HORSE BODY, NECK & HEAD (With crisp outline so overlapping horses pop!) ---
+            ctx.fillStyle = outlook.horseCoat;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+            ctx.lineWidth = 1.1;
+
+            // Torso / Barrel
+            ctx.beginPath();
+            ctx.roundRect(-26, -6.5, 25, 11, 5.5);
+            ctx.fill();
+            ctx.stroke();
+
+            // Neck & Head reaching forward (Nose tip at x = 0 for exact finish-line judgement)
+            ctx.beginPath();
+            ctx.moveTo(-6, -4);
+            ctx.lineTo(1, -13);
+            ctx.lineTo(4, -15); // Ears
+            ctx.lineTo(5, -12.5);
+            ctx.lineTo(10, -8.5); // Nose tip
+            ctx.lineTo(7, -4.5);
+            ctx.lineTo(0, -3);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Flowing Horse Mane
+            ctx.strokeStyle = outlook.horseMane;
+            ctx.lineWidth = 2.6;
+            ctx.beginPath();
+            ctx.moveTo(-6, -5);
+            ctx.lineTo(2, -13);
+            ctx.stroke();
+
+            // White Racing Bridle / Blinkers & Eye
+            ctx.strokeStyle = outlook.silkSecondary;
+            ctx.lineWidth = 1.3;
+            ctx.beginPath();
+            ctx.moveTo(2, -11);
+            ctx.lineTo(7.5, -7);
+            ctx.moveTo(4, -11.5);
+            ctx.lineTo(2.5, -7.5);
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(4.2, -9.8, 1.1, 0, Math.PI * 2);
+            ctx.fill();
+
+            // --- 4. SADDLE CLOTH WITH HORSE NUMBER ---
+            ctx.fillStyle = '#071912';
+            ctx.strokeStyle = outlook.badgeBorder;
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.roundRect(-20, -5.5, 12, 8.5, 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '900 6.5px "JetBrains Mono", monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${horse.number}`, -14, -1);
+
+            // --- 5. PROMINENT JOCKEY RIDER IN VIBRANT SILKS ---
+            // Jockey Boots & White Breeches (Legs)
+            ctx.strokeStyle = '#f8fafc';
+            ctx.lineWidth = 2.4;
+            ctx.beginPath();
+            ctx.moveTo(-14, -6);
+            ctx.lineTo(-10, -2);
+            ctx.stroke();
+
+            // Jockey Torso (Crouched aerodynamic racing posture with colorful silk jersey)
+            ctx.fillStyle = outlook.silkPrimary;
+            ctx.strokeStyle = outlook.silkSecondary;
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.ellipse(-11, -10.5, 7, 4.4, -0.28, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Jockey Arm & Whip/Reins reaching forward
+            ctx.strokeStyle = outlook.silkSecondary;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-7, -10.5);
+            ctx.lineTo(-1, -8.5 + stride * 1.2);
+            ctx.stroke();
+
+            // Jockey Helmet with Dual-Tone Cap & Goggles
+            ctx.fillStyle = outlook.silkPrimary;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.arc(-4.5, -14, 3.8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Helmet Stripe
+            ctx.fillStyle = outlook.silkSecondary;
+            ctx.beginPath();
+            ctx.arc(-4.5, -14, 2.0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+
+            // Draw Name Badge if requested in this pass
+            if (drawTagNow) {
+                drawHorseNameBadge(ctx, horse, x, y + bobY, scale, liveRank, isPinned, false);
+            }
+        }
+
+        // Draws the crisp Participant Name Tag & Rank Badge above/behind the horse
+        function drawHorseNameBadge(ctx, horse, x, y, scale, liveRank, isPinned, isPriorityLayer) {
+            const isTop10 = liveRank <= 10 && state.raceState !== 'idle';
+
+            // If user selected "突顯領先名字" (leaders only), hide non-Top-15 tags during the race to keep view ultra-clean
+            if (state.labelMode === 'leaders' && !isTop10 && liveRank > 15 && !isPinned && state.raceState === 'racing') {
+                return;
+            }
+
+            const outlook = horse.outlook;
+            const fontSize = (isTop10 || isPinned) ? 12.5 : 11;
+            ctx.font = `800 ${fontSize}px "Inter", "Noto Sans TC", sans-serif`;
+
+            // Position badge neatly above-left of the horse so the horse & rider stay completely visible!
+            const shortName = horse.name.length > 16 ? horse.name.slice(0, 15) + '…' : horse.name;
+            const rankPrefix = (isTop10 && state.raceState !== 'idle') ? `[第${liveRank}名] ` : '';
+            const labelText = `${rankPrefix}#${horse.number} ${shortName}`;
+
+            const textW = ctx.measureText(labelText).width;
+            const pillW = textW + 14;
+            const pillH = fontSize + 7;
+
+            // Place pill slightly behind the tail or above the jockey helmet
+            const pillX = Math.max(6, x - 26 * scale - pillW);
+            const pillY = y - pillH / 2 - 4;
+
+            ctx.save();
+
+            // Pill Background
+            if (isPinned) {
+                ctx.fillStyle = 'rgba(251, 191, 36, 0.96)';
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+            } else if (liveRank === 1 && state.raceState !== 'idle') {
+                ctx.fillStyle = 'rgba(245, 158, 11, 0.95)';
+                ctx.strokeStyle = '#fef08a';
+                ctx.lineWidth = 1.8;
+            } else if (isTop10) {
+                ctx.fillStyle = 'rgba(6, 32, 22, 0.92)';
+                ctx.strokeStyle = outlook.badgeBorder;
+                ctx.lineWidth = 1.6;
+            } else {
+                ctx.fillStyle = 'rgba(4, 20, 13, 0.78)';
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+                ctx.lineWidth = 1;
+            }
+
+            ctx.beginPath();
+            ctx.roundRect(pillX, pillY, pillW, pillH, 6);
+            ctx.fill();
+            ctx.stroke();
+
+            // Left silk color indicator bar inside pill
+            ctx.fillStyle = outlook.silkPrimary;
+            ctx.beginPath();
+            ctx.roundRect(pillX + 1, pillY + 1, 4.5, pillH - 2, [5, 0, 0, 5]);
+            ctx.fill();
+
+            // Label Text
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = (isPinned || (liveRank === 1 && state.raceState !== 'idle')) ? '#090d16' : '#ffffff';
+            ctx.fillText(labelText, pillX + 9, pillY + pillH / 2 + 0.5);
+
+            ctx.restore();
+        }
+
+        function spawnDustParticle(x, y, color) {
+            if (state.dustParticles.length > 140) return;
+            state.dustParticles.push({
+                x: x - 28,
+                y: y + (Math.random() * 8 - 4),
+                vx: -1.4 - Math.random() * 2.0,
+                vy: -0.5 + Math.random() * 1.0,
+                radius: 2.0 + Math.random() * 2.8,
+                alpha: 0.55,
+                color
+            });
+        }
+
+        function drawAndStepDustParticles() {
+            for (let i = state.dustParticles.length - 1; i >= 0; i--) {
+                const p = state.dustParticles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= 0.022;
+                if (p.alpha <= 0) {
+                    state.dustParticles.splice(i, 1);
+                    continue;
+                }
+                ctx.fillStyle = `rgba(167, 243, 208, ${p.alpha})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        /* ============================================================================
+         * 6. LIVE RACE LOOP, COMMENTARY & TOP 10 LIVE TICKER
+         * ============================================================================ */
+        function updateCommentary(text) {
+            const el = document.getElementById('commentaryText');
+            if (!el || el.textContent === text) return;
+            el.classList.remove('commentary-enter');
+            void el.offsetWidth;
+            el.textContent = text;
+            el.classList.add('commentary-enter');
+        }
+
+        function updateLiveTop10AndCommentary(sortedHorses, leadProgress) {
+            const top10 = sortedHorses.slice(0, 10);
+            const top10Html = top10.map((h, idx) => {
+                const rankBadgeClass = idx === 0
+                    ? 'bg-amber-400 text-slate-950 font-black'
+                    : (idx === 1 ? 'bg-slate-200 text-slate-950 font-bold' : (idx === 2 ? 'bg-amber-600 text-white font-bold' : 'bg-emerald-800 text-emerald-100'));
+                return `
+                <div class="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-lg bg-black/55 border border-emerald-500/30 text-[11px]">
+                    <span class="w-4 h-4 rounded flex items-center justify-center text-[10px] ${rankBadgeClass}">${idx + 1}</span>
+                    <span class="w-2 h-2 rounded-full shrink-0" style="background:${h.outlook.silkPrimary}"></span>
+                    <span class="font-mono font-bold text-amber-300">#${h.number}</span>
+                    <span class="text-white font-semibold truncate max-w-[85px]">${escapeHtml(h.name)}</span>
+                </div>`;
+            }).join('');
+            document.getElementById('liveTop10Container').innerHTML = top10Html;
+
+            const now = performance.now();
+            if (now - state.lastCommentaryTime > 1800 && top10.length >= 2) {
+                state.lastCommentaryTime = now;
+                const leader = top10[0];
+                const chaser = top10[1];
+                const third = top10[2] || chaser;
+
+                if (leadProgress < 0.25) {
+                    updateCommentary(`閘門打開！#${leader.number} ${leader.name} 率先衝出，#${chaser.number} ${chaser.name} 緊咬在後！`);
+                } else if (leadProgress < 0.55) {
+                    updateCommentary(`大馬群中段加速！#${leader.number} ${leader.name} 暫居榜首，#${third.number} ${third.name} 從後突圍！`);
+                } else if (leadProgress < 0.82) {
+                    updateCommentary(`進入最後直路！#${leader.number} ${leader.name} 與 #${chaser.number} ${chaser.name} 並駕齊驅，爭奪頭獎！`);
+                } else if (leadProgress < 1.0) {
+                    updateCommentary(`最後衝刺！#${leader.number} ${leader.name} 全力衝線，Top 10 大獎即將揭曉！`);
+                }
+            }
+        }
+
+        function startRaceSequence() {
+            if (state.raceState === 'racing' || state.raceState === 'countdown') return;
+
+            syncParticipantsFromTextarea(false);
+            if (state.participants.length < 2) {
+                showToast('請至少輸入 2 個參賽名字方可開始抽獎！', 'warning');
+                return;
+            }
+
+            // Auto-hide the left drawer when starting the race so everyone sees the full-screen track
+            const sidebar = document.getElementById('participantSidebar');
+            sidebar.classList.add('hidden');
+            sidebar.classList.remove('flex');
+
+            const customSec = parseFloat(document.getElementById('customTimeInput').value);
+            state.raceDurationSec = (!isNaN(customSec) && customSec >= 5) ? Math.min(300, customSec) : 15;
+
+            generateRacePacingProfiles();
+            state.finishedHorses = [];
+            state.dustParticles = [];
+            state.raceState = 'countdown';
+
+            document.getElementById('startRaceBtn').disabled = true;
+            document.getElementById('startRaceBtn').classList.add('opacity-50', 'cursor-not-allowed');
+            document.getElementById('openResultsBtn').classList.add('hidden');
+            document.getElementById('raceStatusDot').className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
+
+            const overlay = document.getElementById('gateCountdownOverlay');
+            const numEl = document.getElementById('gateCountdownNumber');
+            overlay.classList.remove('hidden');
+
+            let count = 3;
+            numEl.textContent = count;
+            soundEngine.playBeep(520, 0.14, 'sine', 0.16);
+
+            const countdownInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    numEl.textContent = count;
+                    soundEngine.playBeep(520, 0.14, 'sine', 0.16);
+                } else if (count === 0) {
+                    numEl.textContent = 'GO!';
+                    soundEngine.playStartGateBell();
+                } else {
+                    clearInterval(countdownInterval);
+                    overlay.classList.add('hidden');
+                    beginActiveGallop();
+                }
+            }, 650);
+        }
+
+        function beginActiveGallop() {
+            state.raceState = 'racing';
+            state.raceStartTime = performance.now();
+            state.lastCommentaryTime = 0;
+            document.getElementById('raceStatusDot').className = 'w-2 h-2 rounded-full bg-emerald-400 animate-ping';
+
+            requestAnimationFrame(raceAnimationLoop);
+        }
+
+        function raceAnimationLoop(now) {
+            if (state.raceState !== 'racing') return;
+
+            state.fpsFrames++;
+            if (now - state.fpsLastCheck >= 500) {
+                state.currentFps = Math.min(60, Math.round((state.fpsFrames * 1000) / (now - state.fpsLastCheck)));
+                document.getElementById('fpsCounter').textContent = `${state.currentFps} FPS`;
+                state.fpsFrames = 0;
+                state.fpsLastCheck = now;
+            }
+
+            state.elapsedSec = (now - state.raceStartTime) / 1000;
+            const duration = state.raceDurationSec;
+            const remainingSec = Math.max(0, duration - state.elapsedSec);
+
+            document.getElementById('countdownDisplay').textContent = formatRaceClock(remainingSec);
+
+            let maxProgress = 0;
+            const width = parseFloat(canvas.style.width) || window.innerWidth;
+            const height = parseFloat(canvas.style.height) || (window.innerHeight - 95);
+            const trackTop = 48;
+            const trackBottom = height - 30;
+            const totalHorses = state.participants.length;
+            const padTop = trackTop + (totalHorses <= 15 ? 20 : 34);
+            const padBottom = trackBottom - (totalHorses <= 15 ? 16 : 22);
+            const usableH = Math.max(120, padBottom - padTop);
+
+            const startX = 115;
+            const finishX = width - 110;
+            const raceDistancePx = Math.max(240, finishX - startX);
+
+            // Step every horse's horizontal progress along its strict straight-line Y coordinate
+            state.participants.forEach((horse, idx) => {
+                const prevProgress = horse.progress;
+                const newProgress = evaluateHorseProgress(horse, state.elapsedSec);
+                horse.progress = newProgress;
+
+                // Keep Y strictly equal to baseYRatio (zero up-and-down wandering!)
+                horse.yRatio = horse.baseYRatio;
+
+                const delta = Math.max(0.0005, newProgress - prevProgress);
+                horse.gallopPhase += 0.34 + delta * 18;
+
+                if (newProgress > maxProgress) maxProgress = newProgress;
+
+                // Check if horse just crossed the finish line (progress >= 1.0)
+                if (horse.finishTime === null && newProgress >= 1.0) {
+                    const fraction = (1.0 - prevProgress) / Math.max(0.00001, newProgress - prevProgress);
+                    horse.finishTime = Math.max(0.01, state.elapsedSec - (1 - fraction) * 0.016);
+                    state.finishedHorses.push(horse);
+                    horse.finishRank = state.finishedHorses.length;
+
+                    if (horse.finishRank === 1) {
+                        state.cameraFlashAlpha = 0.75;
+                        soundEngine.playVictoryFanfare();
+                        updateCommentary(`衝線！恭喜 #${horse.number} ${horse.name} 奪得全場總冠軍！`);
+                    }
+                }
+
+                if (idx < 30 && Math.random() < 0.22) {
+                    const laneY = padTop + horse.baseYRatio * usableH;
+                    spawnDustParticle(startX + newProgress * raceDistancePx, laneY, horse.outlook.silkPrimary);
+                }
+            });
+
+            soundEngine.playHoofbeat(maxProgress > 0.75 ? 1.35 : 0.9);
+
+            const pct = Math.min(100, Math.round(maxProgress * 100));
+            document.getElementById('distancePercentText').textContent = `${pct}%`;
+            document.getElementById('raceProgressBar').style.width = `${pct}%`;
+
+            // Sort horses to update live rank map & Top 10 ticker
+            const sorted = [...state.participants].sort((a, b) => {
+                if (a.finishRank && b.finishRank) return a.finishRank - b.finishRank;
+                if (a.finishRank) return -1;
+                if (b.finishRank) return 1;
+                return b.progress - a.progress;
+            });
+
+            sorted.forEach((h, i) => state.liveRankMap.set(h.id, i + 1));
+            updateLiveTop10AndCommentary(sorted, maxProgress);
+
+            drawRaceFrame();
+
+            const allFinished = state.finishedHorses.length >= state.participants.length;
+            const top10DoneAndTimeUp = (
+                state.finishedHorses.length >= Math.min(10, state.participants.length) &&
+                state.elapsedSec >= duration + 1.35
+            );
+
+            if (allFinished || top10DoneAndTimeUp) {
+                finalizeRaceResults();
+            } else {
+                requestAnimationFrame(raceAnimationLoop);
+            }
+        }
+
+        function finalizeRaceResults() {
+            state.raceState = 'finished';
+
+            const unfinished = state.participants
+                .filter(h => h.finishTime === null)
+                .sort((a, b) => b.progress - a.progress);
+
+            unfinished.forEach((h, i) => {
+                h.finishTime = state.elapsedSec + (1.0 - h.progress) * state.raceDurationSec + i * 0.01;
+                state.finishedHorses.push(h);
+                h.finishRank = state.finishedHorses.length;
+            });
+
+            state.finishedHorses.forEach((h, i) => state.liveRankMap.set(h.id, i + 1));
+
+            document.getElementById('countdownDisplay').textContent = '00:00.00';
+            document.getElementById('distancePercentText').textContent = '100%';
+            document.getElementById('raceProgressBar').style.width = '100%';
+            document.getElementById('raceStatusDot').className = 'w-2 h-2 rounded-full bg-amber-400';
+
+            document.getElementById('startRaceBtn').disabled = false;
+            document.getElementById('startRaceBtn').classList.remove('opacity-50', 'cursor-not-allowed');
+            document.getElementById('openResultsBtn').classList.remove('hidden');
+            document.getElementById('openResultsBtn').classList.add('inline-flex');
+
+            drawRaceFrame();
+            launchConfettiCelebration();
+
+            setTimeout(() => {
+                openResultsModal();
+            }, 550);
+        }
+
+        /* ============================================================================
+         * 7. RESULTS MODAL, TOP 3 PODIUM & COPY FUNCTIONS (NO ODDS)
+         * ============================================================================ */
+        function openResultsModal() {
+            if (state.finishedHorses.length === 0) return;
+
+            document.getElementById('resultsSubtitle').textContent =
+                `總參與人數：${state.participants.length} 人 ｜ 設定時間：${state.raceDurationSec} 秒 ｜ 頭獎衝線時間：${state.finishedHorses[0].finishTime.toFixed(2)} 秒`;
+
+            renderTop3Podium();
+            renderResultsTable();
+
+            const modal = document.getElementById('resultsModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeResultsModal() {
+            const modal = document.getElementById('resultsModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function renderTop3Podium() {
+            const container = document.getElementById('top3PodiumContainer');
+            const first = state.finishedHorses[0];
+            const second = state.finishedHorses[1];
+            const third = state.finishedHorses[2];
+
+            const podiumSlots = [
+                { horse: second, rank: 2, title: '二獎 SILVER', medalColor: 'from-slate-300 to-slate-400', border: 'border-slate-300/50', heightClass: 'md:mt-4' },
+                { horse: first,  rank: 1, title: '頭獎 CHAMPION', medalColor: 'from-amber-300 via-amber-400 to-yellow-500', border: 'border-amber-400', heightClass: 'md:-mt-2 neon-gold-shadow' },
+                { horse: third,  rank: 3, title: '三獎 BRONZE', medalColor: 'from-amber-600 to-amber-700', border: 'border-amber-600/50', heightClass: 'md:mt-6' }
+            ];
+
+            container.innerHTML = podiumSlots.map(slot => {
+                if (!slot.horse) return '';
+                const h = slot.horse;
+                return `
+                <div class="rounded-2xl bg-black/55 border-2 ${slot.border} p-4 flex flex-col items-center text-center relative overflow-hidden ${slot.heightClass}">
+                    <div class="px-3 py-0.5 rounded-full bg-gradient-to-r ${slot.medalColor} text-slate-950 font-black text-xs mb-2 shadow">
+                        <i class="fa-solid fa-trophy mr-1"></i>第 ${slot.rank} 名 · ${slot.title}
+                    </div>
+                    <div class="my-1">
+                        ${createHorseBadgeSVG(h.outlook, h.number, slot.rank === 1 ? 64 : 54)}
+                    </div>
+                    <div class="text-base sm:text-lg font-black text-white truncate max-w-full mt-1">
+                        ${escapeHtml(h.name)}
+                    </div>
+                    <div class="flex items-center gap-2 mt-1 text-xs">
+                        <span class="px-2 py-0.5 rounded-md font-semibold" style="background:${h.outlook.badgeBg}; color:${h.outlook.textColor}; border:1px solid ${h.outlook.badgeBorder}">
+                            #${h.number} ${h.outlook.name}
+                        </span>
+                        <span class="font-mono text-amber-300 font-bold">${h.finishTime.toFixed(2)}s</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderResultsTable() {
+            const tbody = document.getElementById('resultsTableBody');
+            const isTop10Tab = state.modalActiveTab === 'top10';
+            const searchQuery = (document.getElementById('resultsSearchInput').value || '').trim().toLowerCase();
+
+            let list = isTop10Tab ? state.finishedHorses.slice(0, 10) : state.finishedHorses;
+
+            if (!isTop10Tab && searchQuery) {
+                list = list.filter(h =>
+                    h.name.toLowerCase().includes(searchQuery) ||
+                    `#${h.number}`.includes(searchQuery) ||
+                    h.outlook.name.toLowerCase().includes(searchQuery)
+                );
+            }
+
+            tbody.innerHTML = list.map(h => {
+                const r = h.finishRank;
+                let rankBadge = `<span class="font-mono font-bold text-emerald-300">#${r}</span>`;
+                if (r === 1) rankBadge = `<span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-xs"><i class="fa-solid fa-crown mr-1"></i>第 1 名</span>`;
+                else if (r === 2) rankBadge = `<span class="px-2.5 py-0.5 rounded-full bg-slate-300 text-slate-950 font-bold text-xs"><i class="fa-solid fa-medal mr-1"></i>第 2 名</span>`;
+                else if (r === 3) rankBadge = `<span class="px-2.5 py-0.5 rounded-full bg-amber-600 text-white font-bold text-xs"><i class="fa-solid fa-award mr-1"></i>第 3 名</span>`;
+                else if (r <= 10) rankBadge = `<span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono font-bold text-xs">Top ${r}</span>`;
+
+                return `
+                <tr class="hover:bg-emerald-900/30 transition">
+                    <td class="py-2.5 px-4 whitespace-nowrap">${rankBadge}</td>
+                    <td class="py-2.5 px-4 font-mono font-bold text-amber-300">#${h.number}</td>
+                    <td class="py-2.5 px-4 whitespace-nowrap">
+                        <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg text-xs font-semibold"
+                             style="background:${h.outlook.badgeBg}; color:${h.outlook.textColor}; border:1px solid ${h.outlook.badgeBorder}">
+                            <span class="w-2.5 h-2.5 rounded-full" style="background:${h.outlook.silkPrimary}"></span>
+                            <span>${h.outlook.name}</span>
+                        </div>
+                    </td>
+                    <td class="py-2.5 px-4 font-bold text-white">${escapeHtml(h.name)}</td>
+                    <td class="py-2.5 px-4 font-mono font-bold text-right text-amber-200">${h.finishTime.toFixed(3)}s</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function copyRankingsToClipboard(top10Only = true) {
+            const list = top10Only ? state.finishedHorses.slice(0, 10) : state.finishedHorses;
+            if (list.length === 0) return;
+
+            const header = top10Only
+                ? `🏆 【公司幸運賽馬大抽獎 - Top 10 得獎名單】`
+                : `🏆 【公司幸運賽馬大抽獎 - 完整衝線排名 (共 ${list.length} 名)】`;
+
+            const lines = list.map(h =>
+                `第 ${String(h.finishRank).padStart(2, '0')} 名 | #${h.number} [${h.outlook.name}] ${h.name} (${h.finishTime.toFixed(2)}s)`
+            );
+
+            const fullText = [header, ...lines].join('\n');
+
+            const tempInput = document.createElement('textarea');
+            tempInput.value = fullText;
+            tempInput.style.position = 'fixed';
+            tempInput.style.left = '-9999px';
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                showToast(top10Only ? '已成功複製 Top 10 得獎名單！' : `已成功複製全部 ${list.length} 名完整排名！`, 'success');
+            } catch (err) {
+                showToast('複製失敗，請手動選取表格複製', 'warning');
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        function launchConfettiCelebration() {
+            const cCanvas = document.getElementById('confettiCanvas');
+            cCanvas.classList.remove('hidden');
+            cCanvas.width = window.innerWidth;
+            cCanvas.height = window.innerHeight;
+            const cCtx = cCanvas.getContext('2d');
+
+            const pieces = Array.from({ length: 110 }, () => ({
+                x: Math.random() * cCanvas.width,
+                y: -20 - Math.random() * cCanvas.height * 0.5,
+                w: 6 + Math.random() * 6,
+                h: 10 + Math.random() * 8,
+                vx: -2 + Math.random() * 4,
+                vy: 3 + Math.random() * 4.5,
+                rot: Math.random() * Math.PI * 2,
+                vRot: -0.1 + Math.random() * 0.2,
+                color: HORSE_OUTLOOK_PALETTE[Math.floor(Math.random() * HORSE_OUTLOOK_PALETTE.length)].silkPrimary
+            }));
+
+            let frames = 0;
+            function stepConfetti() {
+                frames++;
+                cCtx.clearRect(0, 0, cCanvas.width, cCanvas.height);
+                let active = 0;
+                pieces.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.rot += p.vRot;
+                    if (p.y < cCanvas.height + 20) active++;
+                    cCtx.save();
+                    cCtx.translate(p.x, p.y);
+                    cCtx.rotate(p.rot);
+                    cCtx.fillStyle = p.color;
+                    cCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                    cCtx.restore();
+                });
+
+                if (active > 0 && frames < 220) {
+                    requestAnimationFrame(stepConfetti);
+                } else {
+                    cCanvas.classList.add('hidden');
+                }
+            }
+            requestAnimationFrame(stepConfetti);
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const bgClass = type === 'success'
+                ? 'bg-emerald-900/95 border-amber-400 text-white'
+                : 'bg-rose-950/95 border-rose-400 text-rose-100';
+
+            toast.className = `px-4 py-2.5 rounded-xl border shadow-xl flex items-center gap-2 text-xs sm:text-sm font-bold transition-all duration-300 ${bgClass}`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check text-amber-400' : 'fa-triangle-exclamation text-rose-400'}"></i><span>${escapeHtml(message)}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(8px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
+        }
+
+        function formatRaceClock(sec) {
+            const mins = Math.floor(sec / 60);
+            const remSec = Math.floor(sec % 60);
+            const hundredths = Math.floor((sec % 1) * 100);
+            return `${String(mins).padStart(2, '0')}:${String(remSec).padStart(2, '0')}.${String(hundredths).padStart(2, '0')}`;
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function toggleSidebarDrawer(forceShow) {
+            const sidebar = document.getElementById('participantSidebar');
+            const isHidden = sidebar.classList.contains('hidden');
+            const shouldShow = typeof forceShow === 'boolean' ? forceShow : isHidden;
+
+            if (shouldShow) {
+                sidebar.classList.remove('hidden');
+                sidebar.classList.add('flex');
+            } else {
+                sidebar.classList.add('hidden');
+                sidebar.classList.remove('flex');
+            }
+        }
+
+        function bindEventListeners() {
+            // Toggle Left Participant Drawer
+            document.getElementById('toggleDrawerBtn').addEventListener('click', () => toggleSidebarDrawer());
+            document.getElementById('closeSidebarBtn').addEventListener('click', () => toggleSidebarDrawer(false));
+
+            // Horse Scale Slider (馬匹與騎師放大調節 - 最高支援 4.5x)
+            document.getElementById('horseScaleSlider').addEventListener('input', (e) => {
+                setHorseScale(parseFloat(e.target.value) || 1.8);
+                drawRaceFrame();
+            });
+
+            // Name Tag Mode Toggle (顯示全部名字 vs 突顯領先名字)
+            document.getElementById('labelModeBtn').addEventListener('click', () => {
+                state.labelMode = state.labelMode === 'all' ? 'leaders' : 'all';
+                document.getElementById('labelModeText').textContent =
+                    state.labelMode === 'all' ? '名牌：全部顯示' : '名牌：突顯領先';
+                drawRaceFrame();
+            });
+
+            // Sound Toggle
+            document.getElementById('soundToggleBtn').addEventListener('click', () => {
+                soundEngine.enabled = !soundEngine.enabled;
+                const icon = document.getElementById('soundIcon');
+                icon.className = soundEngine.enabled
+                    ? 'fa-solid fa-volume-high text-amber-400'
+                    : 'fa-solid fa-volume-xmark text-emerald-500';
+                showToast(soundEngine.enabled ? '已開啟現場賽馬音效' : '已切換為靜音模式');
+            });
+
+            // Sidebar Tabs: Edit Textarea vs Roster Preview
+            const tabEditBtn = document.getElementById('tabEditBtn');
+            const tabRosterBtn = document.getElementById('tabRosterBtn');
+            const editPanel = document.getElementById('editPanel');
+            const rosterPanel = document.getElementById('rosterPanel');
+
+            tabEditBtn.addEventListener('click', () => {
+                tabEditBtn.className = 'flex-1 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white shadow transition';
+                tabRosterBtn.className = 'flex-1 py-1.5 rounded-lg text-xs font-bold text-emerald-300/70 hover:text-white transition';
+                editPanel.classList.remove('hidden');
+                rosterPanel.classList.add('hidden');
+                rosterPanel.classList.remove('flex');
+            });
+
+            tabRosterBtn.addEventListener('click', () => {
+                syncParticipantsFromTextarea(false);
+                tabRosterBtn.className = 'flex-1 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white shadow transition';
+                tabEditBtn.className = 'flex-1 py-1.5 rounded-lg text-xs font-bold text-emerald-300/70 hover:text-white transition';
+                rosterPanel.classList.remove('hidden');
+                rosterPanel.classList.add('flex');
+                editPanel.classList.add('hidden');
+            });
+
+            // Preset Demo Buttons (10 Names / 30 Names / 120 Names / Shuffle / Clear)
+            document.getElementById('load10Btn').addEventListener('click', () => {
+                if (state.raceState === 'racing') return;
+                document.getElementById('namesTextarea').value = generateDemoNames(10).join('\n');
+                syncParticipantsFromTextarea(true, true);
+                showToast('已載入 10 位同事名單（等距獨立跑道 + 2.6x 大馬匹）！');
+            });
+
+            document.getElementById('load30Btn').addEventListener('click', () => {
+                if (state.raceState === 'racing') return;
+                document.getElementById('namesTextarea').value = generateDemoNames(30).join('\n');
+                syncParticipantsFromTextarea(true, true);
+                showToast('已載入 30 位同事精選名單！');
+            });
+
+            document.getElementById('load120Btn').addEventListener('click', () => {
+                if (state.raceState === 'racing') return;
+                document.getElementById('namesTextarea').value = generateDemoNames(120).join('\n');
+                syncParticipantsFromTextarea(true, true);
+                showToast('已載入 120 位同事範例名單！');
+            });
+
+            document.getElementById('shuffleNamesBtn').addEventListener('click', () => {
+                if (state.raceState === 'racing') return;
+                const textarea = document.getElementById('namesTextarea');
+                const lines = textarea.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+                for (let i = lines.length - 1; i > 0; i--) {
+                    const r = Math.floor(Math.random() * (i + 1));
+                    [lines[i], lines[r]] = [lines[r], lines[i]];
+                }
+                textarea.value = lines.join('\n');
+                syncParticipantsFromTextarea(true, false);
+                showToast('已隨機洗牌並重新分配 12 色騎師綵衣！');
+            });
+
+            document.getElementById('clearNamesBtn').addEventListener('click', () => {
+                if (state.raceState === 'racing') return;
+                document.getElementById('namesTextarea').value = '';
+                syncParticipantsFromTextarea(false, false);
+                showToast('已清空名單');
+            });
+
+            document.getElementById('applyNamesBtn').addEventListener('click', () => {
+                if (state.raceState === 'racing') return;
+                syncParticipantsFromTextarea(false, true);
+                toggleSidebarDrawer(false);
+                showToast(`名單已套用，共 ${state.participants.length} 位同事準備直線起跑！`);
+            });
+
+            document.getElementById('namesTextarea').addEventListener('input', () => {
+                if (state.raceState !== 'racing') {
+                    syncParticipantsFromTextarea(false, true);
+                }
+            });
+
+            document.getElementById('rosterSearchInput').addEventListener('input', renderRosterList);
+
+            // Timer Preset Buttons
+            const presetBtns = document.querySelectorAll('.time-preset-btn');
+            presetBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const sec = parseInt(btn.getAttribute('data-time'), 10);
+                    state.raceDurationSec = sec;
+                    document.getElementById('customTimeInput').value = sec;
+                    if (state.raceState === 'idle') {
+                        document.getElementById('countdownDisplay').textContent = formatRaceClock(sec);
+                    }
+                    presetBtns.forEach(b => {
+                        b.className = 'time-preset-btn px-2 py-1 rounded-lg text-xs font-bold transition text-emerald-300 hover:text-white';
+                    });
+                    btn.className = 'time-preset-btn px-2 py-1 rounded-lg text-xs font-bold transition bg-emerald-600 text-white';
+                });
+            });
+
+            document.getElementById('customTimeInput').addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                if (!isNaN(val) && val >= 5) {
+                    state.raceDurationSec = Math.min(300, val);
+                    if (state.raceState === 'idle') {
+                        document.getElementById('countdownDisplay').textContent = formatRaceClock(state.raceDurationSec);
+                    }
+                }
+            });
+
+            // Start & Reset Race Buttons
+            document.getElementById('startRaceBtn').addEventListener('click', startRaceSequence);
+            document.getElementById('resetRaceBtn').addEventListener('click', resetRaceToGate);
+
+            // Results Modal Controls
+            document.getElementById('openResultsBtn').addEventListener('click', openResultsModal);
+            document.getElementById('closeResultsModalBtn').addEventListener('click', closeResultsModal);
+
+            const modalTabTop10Btn = document.getElementById('modalTabTop10Btn');
+            const modalTabAllBtn = document.getElementById('modalTabAllBtn');
+            const searchWrapper = document.getElementById('fullRankingSearchWrapper');
+
+            modalTabTop10Btn.addEventListener('click', () => {
+                state.modalActiveTab = 'top10';
+                modalTabTop10Btn.className = 'px-4 py-1.5 rounded-lg text-xs sm:text-sm font-extrabold bg-amber-500 text-slate-950 transition';
+                modalTabAllBtn.className = 'px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold text-emerald-200 hover:text-white transition';
+                searchWrapper.classList.add('hidden');
+                renderResultsTable();
+            });
+
+            modalTabAllBtn.addEventListener('click', () => {
+                state.modalActiveTab = 'all';
+                modalTabAllBtn.className = 'px-4 py-1.5 rounded-lg text-xs sm:text-sm font-extrabold bg-amber-500 text-slate-950 transition';
+                modalTabTop10Btn.className = 'px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold text-emerald-200 hover:text-white transition';
+                searchWrapper.classList.remove('hidden');
+                renderResultsTable();
+            });
+
+            document.getElementById('resultsSearchInput').addEventListener('input', renderResultsTable);
+
+            document.getElementById('copyTop10Btn').addEventListener('click', () => copyRankingsToClipboard(true));
+            document.getElementById('copyAllRankingsBtn').addEventListener('click', () => copyRankingsToClipboard(false));
+
+            // Next Round Buttons (Remove Top 10 / Remove Top 1 / Race Again)
+            document.getElementById('raceAgainSameRosterBtn').addEventListener('click', () => {
+                closeResultsModal();
+                resetRaceToGate();
+                startRaceSequence();
+            });
+
+            document.getElementById('removeTop10AndRaceBtn').addEventListener('click', () => {
+                removeWinnersAndReset(10);
+            });
+
+            document.getElementById('removeTop1AndRaceBtn').addEventListener('click', () => {
+                removeWinnersAndReset(1);
+            });
+
+            window.addEventListener('resize', resizeAndDrawCanvas);
+        }
+
+        function resetRaceToGate() {
+            state.raceState = 'idle';
+            state.elapsedSec = 0;
+            state.finishedHorses = [];
+            state.dustParticles = [];
+            document.getElementById('gateCountdownOverlay').classList.add('hidden');
+            document.getElementById('startRaceBtn').disabled = false;
+            document.getElementById('startRaceBtn').classList.remove('opacity-50', 'cursor-not-allowed');
+
+            const customSec = parseFloat(document.getElementById('customTimeInput').value) || 15;
+            state.raceDurationSec = customSec;
+            document.getElementById('countdownDisplay').textContent = formatRaceClock(customSec);
+            document.getElementById('distancePercentText').textContent = '0%';
+            document.getElementById('raceProgressBar').style.width = '0%';
+            document.getElementById('raceStatusDot').className = 'w-2 h-2 rounded-full bg-amber-400';
+
+            state.participants.forEach((h, i) => {
+                h.progress = 0;
+                h.yRatio = h.baseYRatio;
+                h.finishTime = null;
+                h.finishRank = null;
+                state.liveRankMap.set(h.id, i + 1);
+            });
+
+            updateCommentary('所有馬匹已就位！隨時可點擊「開閘起跑」進行抽獎！');
+            drawRaceFrame();
+        }
+
+        function removeWinnersAndReset(removeCount = 10) {
+            if (state.finishedHorses.length === 0) return;
+            const removedIds = new Set(state.finishedHorses.slice(0, removeCount).map(h => h.id));
+            const remainingNames = state.participants
+                .filter(p => !removedIds.has(p.id))
+                .map(p => p.name);
+
+            document.getElementById('namesTextarea').value = remainingNames.join('\n');
+            closeResultsModal();
+            syncParticipantsFromTextarea(false);
+            resetRaceToGate();
+            showToast(`已剔除前 ${removeCount} 名得獎者，剩餘 ${remainingNames.length} 位同事待命！`);
+        }
+
+        // Initialize Application on Window Load
+        window.onload = function () {
+            renderColorSwatches();
+            document.getElementById('namesTextarea').value = generateDemoNames(120).join('\n');
+            syncParticipantsFromTextarea(false, true);
+            bindEventListeners();
+            resizeAndDrawCanvas();
+        };
+    </script>
+</body>
+</html>
