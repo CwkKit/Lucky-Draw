@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>公司幸運賽馬大抽獎 | Corporate Horse Racing Lucky Draw</title>
+    <title>Legan Group 賽馬大抽獎 | Corporate Horse Racing Lucky Draw</title>
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter & Noto Sans TC & JetBrains Mono -->
@@ -41,7 +41,6 @@
         }
     </script>
     <style>
-        /* Custom Scrollbars for internal modals/textareas only */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -66,15 +65,15 @@
             user-select: none;
         }
         .neon-gold-shadow {
-            box-shadow: 0 0 20px rgba(251, 191, 36, 0.32), inset 0 0 12px rgba(251, 191, 36, 0.14);
+            box-shadow: 0 0 22px rgba(251, 191, 36, 0.38), inset 0 0 12px rgba(251, 191, 36, 0.16);
         }
         .neon-emerald-shadow {
             box-shadow: 0 0 22px rgba(16, 185, 129, 0.25);
         }
         .glass-panel {
-            background: rgba(6, 24, 17, 0.90);
+            background: rgba(6, 24, 17, 0.92);
             backdrop-filter: blur(14px);
-            border: 1px solid rgba(52, 211, 153, 0.22);
+            border: 1px solid rgba(52, 211, 153, 0.25);
         }
         @keyframes pulse-fast {
             0%, 100% { transform: scale(1); opacity: 1; }
@@ -90,6 +89,13 @@
         .commentary-enter {
             animation: ticker-slide 0.25s ease-out forwards;
         }
+        @keyframes hold-banner-pop {
+            0% { transform: translate(-50%, 16px) scale(0.95); opacity: 0; }
+            100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+        }
+        .hold-banner-enter {
+            animation: hold-banner-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
     </style>
 </head>
 
@@ -101,57 +107,66 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="fixed bottom-5 right-5 z-[60] flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- Unified Compact Top Control & Broadcast Bar (Fits everything cleanly so track gets maximum height) -->
-    <header class="glass-panel shrink-0 z-30 border-b border-emerald-500/30 px-3 sm:px-5 py-2">
-        <div class="w-full flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+    <!-- Unified Compact Top Control & Broadcast Bar -->
+    <header class="glass-panel shrink-0 z-30 border-b border-emerald-500/30 px-3 sm:px-4 py-2">
+        <div class="w-full flex flex-wrap items-center justify-between gap-2">
             
             <!-- Left: Brand + Participant Drawer Button -->
-            <div class="flex items-center gap-2.5">
+            <div class="flex items-center gap-2">
                 <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600 flex items-center justify-center text-slate-950 font-black text-lg shadow-lg neon-gold-shadow">
                     <i class="fa-solid fa-horse-head"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h1 class="text-sm sm:text-lg font-black tracking-tight bg-gradient-to-r from-amber-300 via-yellow-100 to-emerald-300 bg-clip-text text-transparent">
-                            公司幸運賽馬大抽獎
+                        <h1 class="text-sm sm:text-base xl:text-lg font-black tracking-tight bg-gradient-to-r from-amber-300 via-yellow-100 to-emerald-300 bg-clip-text text-transparent">
+                            Legan Group 賽馬大抽獎
                         </h1>
-                        <span class="hidden xl:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                        <span class="hidden 2xl:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping mr-1"></span>LUCKY DRAW
                         </span>
                     </div>
                 </div>
 
                 <!-- Toggle Participant List Drawer Button -->
-                <button id="toggleDrawerBtn" class="ml-1 px-3 py-1.5 rounded-xl bg-emerald-800/80 hover:bg-emerald-700 border border-amber-400/50 text-xs sm:text-sm font-bold text-white flex items-center gap-1.5 shadow transition">
+                <button id="toggleDrawerBtn" class="ml-1 px-2.5 py-1.5 rounded-xl bg-emerald-800/80 hover:bg-emerald-700 border border-amber-400/50 text-xs font-bold text-white flex items-center gap-1.5 shadow transition">
                     <i class="fa-solid fa-users-viewfinder text-amber-400"></i>
                     <span>輸入/管理名單</span>
-                    <span id="headerHorseCount" class="px-1.5 py-0.2 bg-amber-400 text-slate-950 font-mono font-black rounded-md text-xs">120</span>
+                    <span id="headerHorseCount" class="px-1.5 py-0.2 bg-amber-400 text-slate-950 font-mono font-black rounded-md text-xs">10</span>
                 </button>
             </div>
 
-            <!-- Center: Timer Settings + Horse Size Slider + Name Badge Mode -->
-            <div class="flex flex-wrap items-center gap-2">
+            <!-- Center: Timer Settings + Horse Size + Name Size + Name Badge Mode -->
+            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 <!-- Timer Presets -->
-                <div class="flex items-center bg-black/50 p-1 rounded-xl border border-emerald-500/30 gap-1">
-                    <span class="text-[11px] font-bold text-emerald-300 px-1.5 hidden sm:inline"><i class="fa-solid fa-stopwatch text-amber-400 mr-1"></i>秒數:</span>
+                <div class="flex items-center bg-black/50 p-1 rounded-xl border border-emerald-500/30 gap-0.5">
+                    <span class="text-[11px] font-bold text-emerald-300 px-1 hidden md:inline"><i class="fa-solid fa-stopwatch text-amber-400 mr-1"></i>秒數:</span>
                     <button data-time="15" class="time-preset-btn px-2 py-1 rounded-lg text-xs font-bold transition bg-emerald-600 text-white">15s</button>
                     <button data-time="30" class="time-preset-btn px-2 py-1 rounded-lg text-xs font-bold transition text-emerald-300 hover:text-white">30s</button>
                     <button data-time="45" class="time-preset-btn px-2 py-1 rounded-lg text-xs font-bold transition text-emerald-300 hover:text-white">45s</button>
                     <button data-time="60" class="time-preset-btn px-2 py-1 rounded-lg text-xs font-bold transition text-emerald-300 hover:text-white">60s</button>
-                    <div class="flex items-center gap-0.5 pl-1 pr-1.5 border-l border-emerald-500/30">
+                    <div class="flex items-center gap-0.5 pl-1 pr-1 border-l border-emerald-500/30">
                         <input id="customTimeInput" type="number" min="5" max="300" value="15"
-                            class="w-10 bg-transparent text-center font-mono font-bold text-xs text-amber-300 focus:outline-none" title="自訂秒數">
+                            class="w-9 bg-transparent text-center font-mono font-bold text-xs text-amber-300 focus:outline-none" title="自訂秒數">
                         <span class="text-[10px] text-emerald-400">秒</span>
                     </div>
                 </div>
 
-                <!-- Horse Size Zoom Control (馬匹放大調節 - 支援最高 4.5x 巨型馬匹) -->
-                <div class="flex items-center gap-2 bg-black/50 px-3 py-1.5 rounded-xl border border-emerald-500/30" title="調整畫面上賽馬與騎師的放大倍率 (最高 4.5x)">
-                    <i class="fa-solid fa-magnifying-glass-plus text-amber-400 text-xs"></i>
-                    <span class="text-xs font-bold text-emerald-200 hidden sm:inline">馬匹大小</span>
-                    <input id="horseScaleSlider" type="range" min="0.8" max="4.5" step="0.1" value="1.8"
-                        class="w-20 sm:w-28 accent-amber-400 cursor-pointer h-1.5 bg-emerald-950 rounded-lg">
-                    <span id="horseScaleValue" class="font-mono text-xs font-black text-amber-300 w-9 text-right">1.8x</span>
+                <!-- Horse Size Zoom Control -->
+                <div class="flex items-center gap-1.5 bg-black/50 px-2.5 py-1.5 rounded-xl border border-emerald-500/30" title="調整賽馬與騎師的大小 (0.8x - 4.5x)">
+                    <i class="fa-solid fa-horse text-amber-400 text-xs"></i>
+                    <span class="text-[11px] font-bold text-emerald-200 hidden xl:inline">馬匹</span>
+                    <input id="horseScaleSlider" type="range" min="0.8" max="4.5" step="0.1" value="2.6"
+                        class="w-16 sm:w-20 accent-amber-400 cursor-pointer h-1.5 bg-emerald-950 rounded-lg">
+                    <span id="horseScaleValue" class="font-mono text-[11px] font-black text-amber-300 w-8 text-right">2.6x</span>
+                </div>
+
+                <!-- Name Tag Size Zoom Control -->
+                <div class="flex items-center gap-1.5 bg-black/50 px-2.5 py-1.5 rounded-xl border border-amber-400/40" title="放大或縮小參賽者名字字體 (0.8x - 2.0x)">
+                    <i class="fa-solid fa-font text-amber-400 text-xs"></i>
+                    <span class="text-[11px] font-bold text-amber-200 hidden xl:inline">名字大小</span>
+                    <input id="nameScaleSlider" type="range" min="0.8" max="2.0" step="0.1" value="1.2"
+                        class="w-16 sm:w-20 accent-amber-400 cursor-pointer h-1.5 bg-emerald-950 rounded-lg">
+                    <span id="nameScaleValue" class="font-mono text-[11px] font-black text-amber-300 w-8 text-right">1.2x</span>
                 </div>
 
                 <!-- Name Tag Display Mode Toggle -->
@@ -161,22 +176,22 @@
                 </button>
             </div>
 
-            <!-- Right: Digital Clock + Start / Reset / Results / Audio -->
-            <div class="flex items-center gap-2">
+            <!-- Right: Digital Clock + Start / Reset / Results / Music & SFX -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
                 <!-- Live Countdown Clock -->
-                <div class="bg-black/65 border border-amber-400/40 rounded-xl px-3 py-1 flex items-center gap-2">
+                <div class="bg-black/65 border border-amber-400/40 rounded-xl px-2.5 py-1 flex items-center gap-1.5">
                     <span id="raceStatusDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
-                    <span id="countdownDisplay" class="font-mono text-lg sm:text-xl font-black text-amber-300 tracking-tight">
+                    <span id="countdownDisplay" class="font-mono text-base sm:text-lg font-black text-amber-300 tracking-tight">
                         00:15.00
                     </span>
                 </div>
 
-                <button id="startRaceBtn" class="px-4 sm:px-5 py-2 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black text-xs sm:text-sm shadow-lg neon-gold-shadow flex items-center gap-1.5 transform active:scale-95 transition">
+                <button id="startRaceBtn" class="px-3.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black text-xs sm:text-sm shadow-lg neon-gold-shadow flex items-center gap-1.5 transform active:scale-95 transition">
                     <i class="fa-solid fa-flag-checkered"></i>
                     <span>開閘起跑</span>
                 </button>
 
-                <button id="resetRaceBtn" title="重設回起跑線" class="px-3 py-2 rounded-xl bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-200 font-bold text-xs sm:text-sm flex items-center gap-1 transition">
+                <button id="resetRaceBtn" title="重設回起跑線" class="px-2.5 py-2 rounded-xl bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-200 font-bold text-xs sm:text-sm flex items-center gap-1 transition">
                     <i class="fa-solid fa-rotate-left"></i>
                     <span class="hidden sm:inline">重設</span>
                 </button>
@@ -186,14 +201,15 @@
                     <span class="hidden sm:inline">得獎名單</span>
                 </button>
 
-                <button id="soundToggleBtn" title="切換現場音效" class="w-9 h-9 rounded-xl bg-emerald-900/70 hover:bg-emerald-800/80 border border-emerald-500/40 text-emerald-200 flex items-center justify-center transition">
+                <button id="soundToggleBtn" title="切換賽馬音樂與現場音效" class="px-2.5 h-9 rounded-xl bg-emerald-900/80 hover:bg-emerald-800 border border-amber-400/40 text-emerald-100 flex items-center gap-1.5 text-xs font-bold transition">
                     <i id="soundIcon" class="fa-solid fa-volume-high text-amber-400"></i>
+                    <span id="soundLabel" class="hidden xl:inline">音樂開</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Secondary Live Top 10 Ticker & Commentary Strip (Compact single line) -->
+    <!-- Secondary Live Top 10 Ticker & Commentary Strip -->
     <div class="glass-panel shrink-0 border-b border-emerald-500/20 px-3 sm:px-5 py-1.5 flex items-center justify-between gap-3 z-20">
         <!-- Live Top 10 Real-time Leaderboard Pills -->
         <div class="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
@@ -201,14 +217,14 @@
                 <i class="fa-solid fa-crown"></i> 即時領先 Top 10
             </div>
             <div id="liveTop10Container" class="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto no-scrollbar py-0.5">
-                <span class="text-xs text-emerald-300/80 font-medium">點擊右上角「開閘起跑」開始抽獎！所有馬匹將於同屏大畫面重疊奔馳競逐 Top 10 大獎！</span>
+                <span class="text-xs text-emerald-300/80 font-medium">點擊右上角「開閘起跑」開始 Legan Group 賽馬大抽獎！1–10 號各自擁有專屬顏色！</span>
             </div>
         </div>
 
         <!-- Live Commentary & Progress Pill -->
         <div class="hidden lg:flex items-center gap-3 shrink-0">
             <p id="commentaryText" class="text-xs font-bold text-amber-200 max-w-md truncate commentary-enter">
-                已載入 120 位同事名單，隨時準備開閘！
+                已載入 10 位同事名單（1–10 號獨立專屬顏色），隨時準備開閘！
             </p>
             <div class="w-28 h-2 rounded-full bg-black/60 overflow-hidden border border-emerald-500/30" title="頭馬距離終點進度">
                 <div id="raceProgressBar" class="h-full w-0 bg-gradient-to-r from-emerald-400 via-amber-400 to-yellow-300 transition-all duration-75"></div>
@@ -217,7 +233,7 @@
         </div>
     </div>
 
-    <!-- MAIN FULL-SCREEN WORKSPACE (Zero Scrollbars, 100% Remaining Height) -->
+    <!-- MAIN FULL-SCREEN WORKSPACE -->
     <div class="relative flex-1 w-full h-full overflow-hidden flex">
 
         <!-- COLLAPSIBLE LEFT DRAWER: Participant Input & Color Silk Roster -->
@@ -225,9 +241,9 @@
             <div class="flex items-center justify-between border-b border-emerald-500/25 pb-2">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-clipboard-user text-amber-400"></i>
-                    <h2 class="font-black text-sm sm:text-base text-white">公司抽獎名單設定</h2>
+                    <h2 class="font-black text-sm sm:text-base text-white">Legan Group 抽獎名單</h2>
                     <span id="sidebarCountBadge" class="text-xs font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                        共 120 人
+                        共 10 人
                     </span>
                 </div>
                 <button id="closeSidebarBtn" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition" title="收起面板">
@@ -235,23 +251,15 @@
                 </button>
             </div>
 
-            <!-- Preset & Quick Actions -->
+            <!-- Preset & Quick Actions (10-person preset only) -->
             <div class="grid grid-cols-3 gap-1.5">
                 <button id="load10Btn" class="px-2 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-xs font-bold text-amber-200 flex items-center justify-center gap-1 transition">
                     <i class="fa-solid fa-trophy text-amber-400"></i> 10人名單
                 </button>
-                <button id="load30Btn" class="px-2 py-1.5 rounded-lg bg-emerald-800/60 hover:bg-emerald-700/70 border border-emerald-500/30 text-xs font-semibold text-emerald-100 flex items-center justify-center gap-1 transition">
-                    <i class="fa-solid fa-star text-amber-400"></i> 30人名單
+                <button id="shuffleNamesBtn" class="px-2 py-1.5 rounded-lg bg-emerald-800/60 hover:bg-emerald-700/70 border border-emerald-500/30 text-xs font-semibold text-emerald-100 flex items-center justify-center gap-1 transition">
+                    <i class="fa-solid fa-shuffle text-amber-400"></i> 洗牌換色
                 </button>
-                <button id="load120Btn" class="px-2 py-1.5 rounded-lg bg-emerald-800/60 hover:bg-emerald-700/70 border border-emerald-500/30 text-xs font-semibold text-emerald-100 flex items-center justify-center gap-1 transition">
-                    <i class="fa-solid fa-bolt text-amber-400"></i> 120人名單
-                </button>
-            </div>
-            <div class="grid grid-cols-2 gap-1.5">
-                <button id="shuffleNamesBtn" class="px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/30 text-xs font-semibold text-amber-200 flex items-center justify-center gap-1.5 transition">
-                    <i class="fa-solid fa-shuffle"></i> 隨機洗牌及換色
-                </button>
-                <button id="clearNamesBtn" class="px-2.5 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/30 text-xs font-semibold text-rose-200 flex items-center justify-center gap-1.5 transition">
+                <button id="clearNamesBtn" class="px-2 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/30 text-xs font-semibold text-rose-200 flex items-center justify-center gap-1 transition">
                     <i class="fa-solid fa-trash-can"></i> 清空名單
                 </button>
             </div>
@@ -268,10 +276,10 @@
 
             <!-- Tab 1: Textarea Input -->
             <div id="editPanel" class="flex-1 flex flex-col gap-2 min-h-0">
-                <textarea id="namesTextarea" placeholder="請貼上同事名字（每行一個名字，支援 100+ 人同場奔馳）..."
+                <textarea id="namesTextarea" placeholder="請貼上同事名字（每行一個名字，1–10 號自動配對 10 種獨立顏色）..."
                     class="w-full flex-1 rounded-xl bg-black/60 border border-emerald-500/30 focus:border-amber-400 focus:outline-none p-3 text-xs sm:text-sm font-mono text-emerald-50 leading-relaxed resize-none select-text"></textarea>
                 <div class="flex items-center justify-between text-[11px] text-emerald-300/80">
-                    <span>自動分配號碼與 12 款鮮豔騎師綵衣</span>
+                    <span>1–10 號各自擁有獨立專屬顏色</span>
                     <button id="applyNamesBtn" class="px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-black transition shadow">
                         套用並關閉
                     </button>
@@ -290,11 +298,11 @@
                 </div>
             </div>
 
-            <!-- 12 Color Outlooks Legend Bar -->
+            <!-- 1-10+ Distinct Color Outlooks Legend Bar -->
             <div class="pt-2 border-t border-emerald-500/20">
                 <div class="text-[11px] font-semibold text-emerald-300/80 mb-1.5 flex items-center justify-between">
-                    <span><i class="fa-solid fa-palette text-amber-400 mr-1"></i>12 款賽馬與騎師配色</span>
-                    <span class="text-[10px] text-amber-300/80">點擊同事可打聚光燈</span>
+                    <span><i class="fa-solid fa-palette text-amber-400 mr-1"></i>1–12 號獨立專屬顏色</span>
+                    <span class="text-[10px] text-amber-300/80">1紅 2藍 3金 4綠 5紫...</span>
                 </div>
                 <div id="colorPaletteSwatches" class="grid grid-cols-6 gap-1">
                     <!-- Rendered dynamically -->
@@ -302,14 +310,14 @@
             </div>
         </aside>
 
-        <!-- FULL-VIEWPORT TURF RACECOURSE CANVAS (No scrollbars ever!) -->
+        <!-- FULL-VIEWPORT TURF RACECOURSE CANVAS -->
         <main id="canvasViewport" class="relative flex-1 w-full h-full overflow-hidden bg-turf-950">
             
             <!-- Top-Left & Top-Right Floating Track Badges -->
             <div class="absolute top-2.5 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
                 <div class="flex items-center gap-2">
                     <div class="px-3 py-1 rounded-full bg-black/65 backdrop-blur-md border border-emerald-500/30 text-xs font-bold text-emerald-200 flex items-center gap-2 shadow">
-                        <span><i class="fa-solid fa-horse text-amber-400 mr-1"></i>全屏直線競速模式 (等距平均站位・支援巨型馬匹)</span>
+                        <span><i class="fa-solid fa-horse text-amber-400 mr-1"></i>Legan Group 全屏直線競速 (1–10 號獨立顏色・終點定格)</span>
                         <span id="pinnedHorseBanner" class="text-amber-300 hidden border-l border-emerald-500/40 pl-2"></span>
                     </div>
                 </div>
@@ -325,6 +333,34 @@
                 </div>
                 <div class="mt-2 text-lg sm:text-2xl font-bold text-white tracking-widest uppercase">
                     各就各位・準備開閘
+                </div>
+            </div>
+
+            <!-- FINISH-LINE PHOTO HOLD BANNER -->
+            <div id="finishHoldBanner" class="hidden absolute bottom-8 left-1/2 -translate-x-1/2 z-20 glass-panel border-2 border-amber-400 rounded-2xl px-4 sm:px-6 py-3 shadow-2xl neon-gold-shadow flex flex-wrap items-center justify-center gap-3 sm:gap-4 max-w-[95vw]">
+                <div class="flex items-center gap-2.5">
+                    <span class="px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center gap-1.5 animate-pulse">
+                        <i class="fa-solid fa-camera"></i> 終點定格 HOLD 住
+                    </span>
+                    <div class="text-left">
+                        <div id="holdChampionText" class="text-sm sm:text-base font-black text-white">
+                            冠軍衝線！
+                        </div>
+                        <div id="holdTimerSubtext" class="text-[11px] text-amber-300 font-semibold">
+                            終點畫面定格中（5 秒後開啟頒獎台）
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button id="toggleHoldLockBtn" class="px-3 py-1.5 rounded-xl bg-emerald-800/90 hover:bg-emerald-700 border border-amber-400/60 text-amber-200 font-bold text-xs sm:text-sm flex items-center gap-1.5 transition">
+                        <i id="holdLockIcon" class="fa-solid fa-thumbtack"></i>
+                        <span id="holdLockLabel">鎖定畫面 (繼續 Hold 住)</span>
+                    </button>
+                    <button id="viewPodiumNowBtn" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-lg transition">
+                        <i class="fa-solid fa-trophy"></i>
+                        <span>查看 Top 10 頒獎台</span>
+                    </button>
                 </div>
             </div>
 
@@ -345,13 +381,13 @@
                     </div>
                     <div>
                         <h2 class="text-lg sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
-                            <span>公司幸運賽馬大抽獎・Top 10 得獎名單</span>
+                            <span>Legan Group 賽馬大抽獎・得獎名單</span>
                             <span class="text-xs px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 font-mono">WINNERS</span>
                         </h2>
-                        <p id="resultsSubtitle" class="text-xs text-emerald-300/80">總參與人數：120 人 ｜ 抽獎歷時：15.00 秒</p>
+                        <p id="resultsSubtitle" class="text-xs text-emerald-300/80">總參與人數：10 人 ｜ 抽獎歷時：15.00 秒</p>
                     </div>
                 </div>
-                <button id="closeResultsModalBtn" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+                <button id="closeResultsModalBtn" title="關閉視窗並返回終點定格畫面" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
@@ -371,7 +407,7 @@
                             <i class="fa-solid fa-medal mr-1"></i> Top 10 得獎榮譽榜
                         </button>
                         <button id="modalTabAllBtn" class="px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold text-emerald-200 hover:text-white transition">
-                            <i class="fa-solid fa-list-ol mr-1"></i> 完整衝線排名 (<span id="modalTotalCount">120</span>)
+                            <i class="fa-solid fa-list-ol mr-1"></i> 完整衝線排名 (<span id="modalTotalCount">10</span>)
                         </button>
                     </div>
 
@@ -385,16 +421,16 @@
                     </div>
                 </div>
 
-                <!-- Search input for Full Ranking List (shown when All tab is active) -->
+                <!-- Search input for Full Ranking List -->
                 <div id="fullRankingSearchWrapper" class="hidden">
                     <div class="relative max-w-md">
                         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-emerald-400/70 text-xs"></i>
-                        <input id="resultsSearchInput" type="text" placeholder="搜尋同事姓名或編號（例如：#18 或 Alex）..."
+                        <input id="resultsSearchInput" type="text" placeholder="搜尋同事姓名或編號（例如：#1 或 Alex）..."
                             class="w-full pl-9 pr-4 py-2 rounded-xl bg-black/60 border border-emerald-500/40 text-sm text-white focus:border-amber-400 focus:outline-none select-text">
                     </div>
                 </div>
 
-                <!-- Rankings Table (Clean: Rank, Number, Color Outlook, Name, Finish Time) -->
+                <!-- Rankings Table -->
                 <div class="overflow-x-auto rounded-2xl border border-emerald-500/25 bg-black/40">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -434,187 +470,443 @@
 
     <script>
         /* ============================================================================
-         * 1. HORSE COLOR & JOCKEY SILK OUTLOOK DEFINITIONS (12 HIGH-CONTRAST SCHEMES)
+         * 1. HORSE COLOR & JOCKEY SILK OUTLOOK DEFINITIONS (12 DISTINCT COLORS: #1 RED, #2 BLUE...)
          * ============================================================================ */
         const HORSE_OUTLOOK_PALETTE = [
             {
                 id: 'crimson',
-                name: '炫彩紅 Crimson',
+                name: '1號 炫彩紅 Red',
                 silkPrimary: '#ef4444',
                 silkSecondary: '#fef08a',
                 horseCoat: '#991b1b',
                 horseMane: '#450a0a',
-                badgeBg: 'rgba(239, 68, 68, 0.25)',
+                badgeBg: 'rgba(239, 68, 68, 0.28)',
                 badgeBorder: '#f87171',
                 textColor: '#fecaca'
             },
             {
                 id: 'aurora_blue',
-                name: '極光藍 Aurora',
+                name: '2號 極光藍 Blue',
                 silkPrimary: '#3b82f6',
                 silkSecondary: '#ffffff',
                 horseCoat: '#1e40af',
                 horseMane: '#93c5fd',
-                badgeBg: 'rgba(59, 130, 246, 0.25)',
+                badgeBg: 'rgba(59, 130, 246, 0.28)',
                 badgeBorder: '#60a5fa',
                 textColor: '#bfdbfe'
             },
             {
                 id: 'imperial_gold',
-                name: '帝王金 Gold',
+                name: '3號 帝王金 Gold',
                 silkPrimary: '#eab308',
                 silkSecondary: '#78350f',
                 horseCoat: '#b45309',
                 horseMane: '#fef08a',
-                badgeBg: 'rgba(234, 179, 8, 0.25)',
+                badgeBg: 'rgba(234, 179, 8, 0.28)',
                 badgeBorder: '#facc15',
                 textColor: '#fef08a'
             },
             {
                 id: 'emerald',
-                name: '翡翠綠 Emerald',
+                name: '4號 翡翠綠 Emerald',
                 silkPrimary: '#10b981',
                 silkSecondary: '#ecfdf5',
                 horseCoat: '#065f46',
                 horseMane: '#6ee7b7',
-                badgeBg: 'rgba(16, 185, 129, 0.25)',
+                badgeBg: 'rgba(16, 185, 129, 0.28)',
                 badgeBorder: '#34d399',
                 textColor: '#a7f3d0'
             },
             {
                 id: 'neon_purple',
-                name: '電光紫 Purple',
+                name: '5號 電光紫 Purple',
                 silkPrimary: '#a855f7',
                 silkSecondary: '#fde047',
                 horseCoat: '#6b21a8',
                 horseMane: '#e9d5ff',
-                badgeBg: 'rgba(168, 85, 247, 0.25)',
+                badgeBg: 'rgba(168, 85, 247, 0.28)',
                 badgeBorder: '#c084fc',
                 textColor: '#e9d5ff'
             },
             {
                 id: 'cyber_cyan',
-                name: '賽博青 Cyan',
+                name: '6號 賽博青 Cyan',
                 silkPrimary: '#06b6d4',
                 silkSecondary: '#0f172a',
                 horseCoat: '#155e75',
                 horseMane: '#a5f3fc',
-                badgeBg: 'rgba(6, 182, 212, 0.25)',
+                badgeBg: 'rgba(6, 182, 212, 0.28)',
                 badgeBorder: '#22d3ee',
                 textColor: '#cffafe'
             },
             {
                 id: 'sunset_orange',
-                name: '烈焰橙 Orange',
+                name: '7號 烈焰橙 Orange',
                 silkPrimary: '#f97316',
                 silkSecondary: '#fffbeb',
                 horseCoat: '#9a3412',
                 horseMane: '#fed7aa',
-                badgeBg: 'rgba(249, 115, 22, 0.25)',
+                badgeBg: 'rgba(249, 115, 22, 0.28)',
                 badgeBorder: '#fb923c',
                 textColor: '#ffedd5'
             },
             {
                 id: 'magenta',
-                name: '霓虹粉 Magenta',
+                name: '8號 霓虹粉 Magenta',
                 silkPrimary: '#ec4899',
                 silkSecondary: '#fdf2f8',
                 horseCoat: '#9d174d',
                 horseMane: '#fbcfe8',
-                badgeBg: 'rgba(236, 72, 153, 0.25)',
+                badgeBg: 'rgba(236, 72, 153, 0.28)',
                 badgeBorder: '#f472b6',
                 textColor: '#fce7f3'
             },
             {
                 id: 'lightning_lime',
-                name: '閃電綠 Lime',
+                name: '9號 閃電綠 Lime',
                 silkPrimary: '#84cc16',
                 silkSecondary: '#1a2e05',
                 horseCoat: '#3f6212',
                 horseMane: '#d9f99d',
-                badgeBg: 'rgba(132, 204, 22, 0.25)',
+                badgeBg: 'rgba(132, 204, 22, 0.28)',
                 badgeBorder: '#a3e635',
                 textColor: '#ecfccb'
             },
             {
                 id: 'royal_indigo',
-                name: '皇家靛 Indigo',
+                name: '10號 皇家靛 Indigo',
                 silkPrimary: '#6366f1',
                 silkSecondary: '#fbbf24',
                 horseCoat: '#3730a3',
                 horseMane: '#c7d2fe',
-                badgeBg: 'rgba(99, 102, 241, 0.25)',
+                badgeBg: 'rgba(99, 102, 241, 0.28)',
                 badgeBorder: '#818cf8',
                 textColor: '#e0e7ff'
             },
             {
                 id: 'galaxy_silver',
-                name: '銀河白 Silver',
+                name: '11號 銀河白 Silver',
                 silkPrimary: '#e2e8f0',
                 silkSecondary: '#0f172a',
                 horseCoat: '#475569',
                 horseMane: '#f8fafc',
-                badgeBg: 'rgba(226, 232, 240, 0.25)',
+                badgeBg: 'rgba(226, 232, 240, 0.28)',
                 badgeBorder: '#cbd5e1',
                 textColor: '#f1f5f9'
             },
             {
                 id: 'coral_red',
-                name: '珊瑚紅 Coral',
+                name: '12號 珊瑚紅 Coral',
                 silkPrimary: '#fb7185',
                 silkSecondary: '#fff1f2',
                 horseCoat: '#881337',
                 horseMane: '#fecdd3',
-                badgeBg: 'rgba(251, 113, 133, 0.25)',
+                badgeBg: 'rgba(251, 113, 133, 0.28)',
                 badgeBorder: '#fda4af',
                 textColor: '#ffe4e6'
             }
         ];
 
-        const DEMO_DEPARTMENTS = ['Tech', 'Product', 'Design', 'Marketing', 'Sales', 'Finance', 'HR', 'Ops'];
+        const DEMO_DEPARTMENTS = ['Tech', 'Product', 'Design', 'Marketing', 'Sales', 'Finance', 'HR', 'Ops', 'Admin', 'Legal'];
         const DEMO_FIRST_NAMES = [
-            'Alex Chan', 'Agnes Wong', 'Brandon Lam', 'Carmen Yip', 'Calvin Ho', 'Chloe Leung',
-            'Daniel Tse', 'Derek Ng', 'Eason Kwok', 'Elaine Chow', 'Felix Tang', 'Fiona Mak',
-            'Gabriel Lo', 'Grace Cheung', 'Henry Lau', 'Hilary Poon', 'Ivan Ma', 'Iris Tsang',
-            'Jason Fung', 'Jasmine Siu', 'Kelvin Au', 'Kelly Wan', 'Leo Yuen', 'Mandy Ko',
-            'Nathan Chu', 'Olivia Sin', 'Patrick Tam', 'Queenie Lai', 'faymond Pang', 'Rachel Shum'
+            'Alex Chan', 'Agnes Wong', 'Brandon Lam', 'Carmen Yip', 'Calvin Ho',
+            'Chloe Leung', 'Daniel Tse', 'Derek Ng', 'Eason Kwok', 'Elaine Chow'
         ];
 
-        function generateDemoNames(count = 120) {
+        function generateDemoNames(count = 10) {
             const list = [];
             for (let i = 1; i <= count; i++) {
                 const staffName = DEMO_FIRST_NAMES[(i - 1) % DEMO_FIRST_NAMES.length];
-                const dept = DEMO_DEPARTMENTS[(i * 3) % DEMO_DEPARTMENTS.length];
-                list.push(`${staffName} (${dept} #${i})`);
+                const dept = DEMO_DEPARTMENTS[(i - 1) % DEMO_DEPARTMENTS.length];
+                list.push(`${staffName} (${dept})`);
             }
             return list;
         }
 
         /* ============================================================================
-         * 2. WEB AUDIO API SOUND ENGINE (No external audio files required)
+         * 2. AUTHENTIC HORSE RACING SYMPHONY & RACECOURSE SFX ENGINE
          * ============================================================================ */
         class RaceSoundEngine {
             constructor() {
                 this.ctx = null;
+                this.masterBus = null;
+                this.reverbSend = null;
                 this.enabled = true;
                 this.lastHoofTime = 0;
+                this.hoofStep = 0;
+                this.musicTimer = null;
+                this.isMusicPlaying = false;
+                this.nextNoteTime = 0;
+                this.stepIndex = 0;
+                this.sprintMode = false;
+                this.noiseBuffer = null;
             }
 
             init() {
                 if (!this.ctx) {
                     const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                    if (AudioCtx) this.ctx = new AudioCtx();
+                    if (AudioCtx) {
+                        this.ctx = new AudioCtx();
+                        this.setupAudioBuses();
+                        this.createNoiseBuffer();
+                    }
                 }
                 if (this.ctx && this.ctx.state === 'suspended') {
                     this.ctx.resume();
                 }
             }
 
-            playBeep(freq = 660, duration = 0.15, type = 'sine', gainVal = 0.15) {
+            setupAudioBuses() {
+                if (!this.ctx) return;
+                const compressor = this.ctx.createDynamicsCompressor();
+                compressor.threshold.setValueAtTime(-16, this.ctx.currentTime);
+                compressor.knee.setValueAtTime(18, this.ctx.currentTime);
+                compressor.ratio.setValueAtTime(4, this.ctx.currentTime);
+                compressor.attack.setValueAtTime(0.005, this.ctx.currentTime);
+                compressor.release.setValueAtTime(0.18, this.ctx.currentTime);
+                compressor.connect(this.ctx.destination);
+
+                this.masterBus = compressor;
+
+                const delay = this.ctx.createDelay(0.5);
+                delay.delayTime.setValueAtTime(0.14, this.ctx.currentTime);
+
+                const feedback = this.ctx.createGain();
+                feedback.gain.setValueAtTime(0.26, this.ctx.currentTime);
+
+                const wetFilter = this.ctx.createBiquadFilter();
+                wetFilter.type = 'lowpass';
+                wetFilter.frequency.setValueAtTime(1900, this.ctx.currentTime);
+
+                const wetGain = this.ctx.createGain();
+                wetGain.gain.setValueAtTime(0.24, this.ctx.currentTime);
+
+                delay.connect(wetFilter);
+                wetFilter.connect(feedback);
+                feedback.connect(delay);
+                wetFilter.connect(wetGain);
+                wetGain.connect(this.masterBus);
+
+                this.reverbSend = delay;
+            }
+
+            createNoiseBuffer() {
+                if (!this.ctx) return;
+                const sampleRate = this.ctx.sampleRate;
+                const length = sampleRate * 1.5;
+                const buffer = this.ctx.createBuffer(1, length, sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < length; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                this.noiseBuffer = buffer;
+            }
+
+            playCallToThePost() {
                 if (!this.enabled) return;
                 try {
                     this.init();
                     if (!this.ctx) return;
+                    const now = this.ctx.currentTime;
+
+                    const notes = [
+                        { freq: 392.00, t: 0.00, dur: 0.16 },
+                        { freq: 523.25, t: 0.18, dur: 0.16 },
+                        { freq: 659.25, t: 0.36, dur: 0.16 },
+                        { freq: 783.99, t: 0.54, dur: 0.32 },
+                        { freq: 659.25, t: 0.90, dur: 0.16 },
+                        { freq: 783.99, t: 1.08, dur: 0.65 }
+                    ];
+
+                    notes.forEach(n => {
+                        this.scheduleBrassNote(n.freq, now + n.t, n.dur, 0.16);
+                        this.scheduleBrassNote(n.freq * 0.5, now + n.t, n.dur, 0.07);
+                    });
+                } catch (e) {}
+            }
+
+            startRaceMusic() {
+                this.stopRaceMusic();
+                if (!this.enabled) return;
+                try {
+                    this.init();
+                    if (!this.ctx) return;
+
+                    this.isMusicPlaying = true;
+                    this.stepIndex = 0;
+                    this.sprintMode = false;
+                    this.nextNoteTime = this.ctx.currentTime + 0.03;
+
+                    const melodyPattern = [
+                        74, 74, 79, 0,   74, 74, 79, 0,   74, 74, 79, 81,  83, 0,  79, 0,
+                        74, 74, 79, 83,  81, 78, 74, 0,   74, 74, 79, 81,  83, 0,  79, 0,
+                        79, 83, 86, 0,   83, 79, 76, 72,  76, 79, 83, 81,  78, 0,  79, 0,
+                        83, 83, 83, 0,   83, 83, 84, 86,  88, 86, 84, 83,  81, 78, 79, 0
+                    ];
+
+                    const bassPattern = [
+                        43, 0, 50, 0,  43, 0, 50, 0,  43, 0, 50, 0,  43, 0, 50, 0,
+                        43, 0, 50, 0,  38, 0, 45, 0,  43, 0, 50, 0,  43, 0, 50, 0,
+                        43, 0, 50, 0,  43, 0, 48, 0,  48, 0, 52, 0,  38, 0, 50, 0,
+                        43, 0, 50, 0,  43, 0, 50, 0,  48, 0, 45, 0,  38, 0, 43, 0
+                    ];
+
+                    const drumPattern = [
+                        3, 3, 1, 2,  3, 3, 1, 2,  3, 3, 1, 2,  1, 2, 1, 2,
+                        3, 3, 1, 2,  3, 3, 1, 2,  3, 3, 1, 2,  1, 2, 1, 2,
+                        1, 3, 2, 3,  1, 3, 2, 3,  1, 3, 2, 3,  1, 2, 1, 2,
+                        3, 3, 1, 2,  3, 3, 1, 2,  1, 2, 1, 2,  1, 2, 1, 0
+                    ];
+
+                    const scheduleAheadSec = 0.14;
+                    this.musicTimer = setInterval(() => {
+                        if (!this.isMusicPlaying || !this.enabled || !this.ctx) return;
+
+                        const bpm = this.sprintMode ? 164 : 148;
+                        const sixteenthDur = 60 / bpm / 4;
+
+                        while (this.nextNoteTime < this.ctx.currentTime + scheduleAheadSec) {
+                            const idx = this.stepIndex % melodyPattern.length;
+                            const dIdx = this.stepIndex % drumPattern.length;
+
+                            const mNote = melodyPattern[idx];
+                            const bNote = bassPattern[idx];
+                            const drum = drumPattern[dIdx];
+
+                            if (mNote > 0) {
+                                const freq = this.midiToFreq(mNote);
+                                this.scheduleBrassNote(freq, this.nextNoteTime, sixteenthDur * 0.92, 0.12);
+                                if (this.sprintMode) {
+                                    this.scheduleBrassNote(freq * 2, this.nextNoteTime, sixteenthDur * 0.85, 0.045);
+                                }
+                            }
+                            if (bNote > 0) {
+                                this.scheduleBassNote(this.midiToFreq(bNote), this.nextNoteTime, sixteenthDur * 1.45);
+                            }
+                            if (drum > 0) {
+                                this.scheduleGallopDrum(drum, this.nextNoteTime);
+                            }
+
+                            this.nextNoteTime += sixteenthDur;
+                            this.stepIndex++;
+                        }
+                    }, 25);
+                } catch (e) {}
+            }
+
+            stopRaceMusic() {
+                this.isMusicPlaying = false;
+                if (this.musicTimer) {
+                    clearInterval(this.musicTimer);
+                    this.musicTimer = null;
+                }
+            }
+
+            midiToFreq(midi) {
+                return 440 * Math.pow(2, (midi - 69) / 12);
+            }
+
+            scheduleBrassNote(freq, time, dur, peakGain = 0.12) {
+                if (!this.ctx || !this.masterBus) return;
+                const osc1 = this.ctx.createOscillator();
+                const osc2 = this.ctx.createOscillator();
+                const filter = this.ctx.createBiquadFilter();
+                const gain = this.ctx.createGain();
+
+                osc1.type = 'sawtooth';
+                osc2.type = 'triangle';
+                osc1.frequency.setValueAtTime(freq, time);
+                osc2.frequency.setValueAtTime(freq * 1.003, time);
+
+                filter.type = 'lowpass';
+                filter.Q.setValueAtTime(2.2, time);
+                filter.frequency.setValueAtTime(650, time);
+                filter.frequency.linearRampToValueAtTime(2800, time + 0.028);
+                filter.frequency.exponentialRampToValueAtTime(1250, time + dur);
+
+                gain.gain.setValueAtTime(0.001, time);
+                gain.gain.linearRampToValueAtTime(peakGain, time + 0.015);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+
+                osc1.connect(filter);
+                osc2.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.masterBus);
+                if (this.reverbSend) gain.connect(this.reverbSend);
+
+                osc1.start(time);
+                osc2.start(time);
+                osc1.stop(time + dur + 0.02);
+                osc2.stop(time + dur + 0.02);
+            }
+
+            scheduleBassNote(freq, time, dur) {
+                if (!this.ctx || !this.masterBus) return;
+                const osc = this.ctx.createOscillator();
+                const filter = this.ctx.createBiquadFilter();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, time);
+
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(480, time);
+
+                gain.gain.setValueAtTime(0.001, time);
+                gain.gain.linearRampToValueAtTime(0.16, time + 0.012);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.masterBus);
+
+                osc.start(time);
+                osc.stop(time + dur + 0.02);
+            }
+
+            scheduleGallopDrum(type, time) {
+                if (!this.ctx || !this.masterBus) return;
+                if (type === 1) {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(140, time);
+                    osc.frequency.exponentialRampToValueAtTime(44, time + 0.08);
+                    gain.gain.setValueAtTime(0.16, time);
+                    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.085);
+                    osc.connect(gain);
+                    gain.connect(this.masterBus);
+                    osc.start(time);
+                    osc.stop(time + 0.09);
+                } else if (this.noiseBuffer) {
+                    const src = this.ctx.createBufferSource();
+                    src.buffer = this.noiseBuffer;
+                    const filter = this.ctx.createBiquadFilter();
+                    const gain = this.ctx.createGain();
+
+                    filter.type = type === 2 ? 'bandpass' : 'highpass';
+                    filter.frequency.setValueAtTime(type === 2 ? 1750 : 5200, time);
+
+                    const vol = type === 2 ? 0.075 : 0.032;
+                    const dur = type === 2 ? 0.07 : 0.035;
+
+                    gain.gain.setValueAtTime(vol, time);
+                    gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+
+                    src.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.masterBus);
+                    if (type === 2 && this.reverbSend) gain.connect(this.reverbSend);
+                    src.start(time);
+                    src.stop(time + dur + 0.01);
+                }
+            }
+
+            playBeep(freq = 660, duration = 0.15, type = 'sine', gainVal = 0.16) {
+                if (!this.enabled) return;
+                try {
+                    this.init();
+                    if (!this.ctx || !this.masterBus) return;
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
                     osc.type = type;
@@ -622,7 +914,7 @@
                     gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
                     osc.connect(gain);
-                    gain.connect(this.ctx.destination);
+                    gain.connect(this.masterBus);
                     osc.start();
                     osc.stop(this.ctx.currentTime + duration);
                 } catch (e) {}
@@ -632,43 +924,132 @@
                 if (!this.enabled) return;
                 try {
                     this.init();
-                    if (!this.ctx) return;
+                    if (!this.ctx || !this.masterBus) return;
                     const now = this.ctx.currentTime;
-                    [1180, 1560, 2120].forEach((freq, idx) => {
+
+                    [1318.5, 1760, 2349.3].forEach((freq, idx) => {
                         const osc = this.ctx.createOscillator();
                         const gain = this.ctx.createGain();
                         osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(freq, now + idx * 0.04);
-                        gain.gain.setValueAtTime(0.18, now + idx * 0.04);
-                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.035);
+                        gain.gain.setValueAtTime(0.22, now + idx * 0.035);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
                         osc.connect(gain);
-                        gain.connect(this.ctx.destination);
-                        osc.start(now + idx * 0.04);
-                        osc.stop(now + 0.56);
+                        gain.connect(this.masterBus);
+                        if (this.reverbSend) gain.connect(this.reverbSend);
+                        osc.start(now + idx * 0.035);
+                        osc.stop(now + 0.66);
                     });
+
+                    const whinnyOsc = this.ctx.createOscillator();
+                    const vibrato = this.ctx.createOscillator();
+                    const vibratoGain = this.ctx.createGain();
+                    const filter = this.ctx.createBiquadFilter();
+                    const mainGain = this.ctx.createGain();
+
+                    whinnyOsc.type = 'sawtooth';
+                    whinnyOsc.frequency.setValueAtTime(690, now + 0.08);
+                    whinnyOsc.frequency.linearRampToValueAtTime(940, now + 0.22);
+                    whinnyOsc.frequency.exponentialRampToValueAtTime(420, now + 0.68);
+
+                    vibrato.type = 'sine';
+                    vibrato.frequency.setValueAtTime(26, now + 0.08);
+                    vibratoGain.gain.setValueAtTime(38, now + 0.08);
+                    vibrato.connect(vibratoGain);
+                    vibratoGain.connect(whinnyOsc.frequency);
+
+                    filter.type = 'bandpass';
+                    filter.frequency.setValueAtTime(1150, now + 0.08);
+                    filter.Q.setValueAtTime(3.2, now + 0.08);
+
+                    mainGain.gain.setValueAtTime(0.001, now + 0.08);
+                    mainGain.gain.linearRampToValueAtTime(0.15, now + 0.14);
+                    mainGain.gain.exponentialRampToValueAtTime(0.001, now + 0.70);
+
+                    whinnyOsc.connect(filter);
+                    filter.connect(mainGain);
+                    mainGain.connect(this.masterBus);
+
+                    whinnyOsc.start(now + 0.08);
+                    vibrato.start(now + 0.08);
+                    whinnyOsc.stop(now + 0.72);
+                    vibrato.stop(now + 0.72);
                 } catch (e) {}
             }
 
             playHoofbeat(intensity = 1) {
                 if (!this.enabled) return;
                 const nowMs = performance.now();
-                if (nowMs - this.lastHoofTime < 135) return;
+                const intervals = [82, 82, 168];
+                const requiredGap = intervals[this.hoofStep % 3];
+                if (nowMs - this.lastHoofTime < requiredGap) return;
+
                 this.lastHoofTime = nowMs;
+                const beatType = this.hoofStep % 3;
+                this.hoofStep++;
+
                 try {
                     this.init();
-                    if (!this.ctx) return;
+                    if (!this.ctx || !this.masterBus) return;
                     const now = this.ctx.currentTime;
+
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(110 + Math.random() * 35, now);
-                    osc.frequency.exponentialRampToValueAtTime(42, now + 0.06);
-                    gain.gain.setValueAtTime(0.05 * intensity, now);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.065);
+                    const baseFreq = beatType === 2 ? 128 : 98;
+                    osc.frequency.setValueAtTime(baseFreq + Math.random() * 20, now);
+                    osc.frequency.exponentialRampToValueAtTime(38, now + 0.055);
+
+                    const vol = (beatType === 2 ? 0.095 : 0.06) * intensity;
+                    gain.gain.setValueAtTime(vol, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+
                     osc.connect(gain);
-                    gain.connect(this.ctx.destination);
+                    gain.connect(this.masterBus);
                     osc.start(now);
-                    osc.stop(now + 0.07);
+                    osc.stop(now + 0.065);
+
+                    if (this.noiseBuffer) {
+                        const noise = this.ctx.createBufferSource();
+                        noise.buffer = this.noiseBuffer;
+                        const bpf = this.ctx.createBiquadFilter();
+                        const nGain = this.ctx.createGain();
+                        bpf.type = 'bandpass';
+                        bpf.frequency.setValueAtTime(900 + Math.random() * 400, now);
+                        nGain.gain.setValueAtTime(vol * 0.55, now);
+                        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+                        noise.connect(bpf);
+                        bpf.connect(nGain);
+                        nGain.connect(this.masterBus);
+                        noise.start(now);
+                        noise.stop(now + 0.05);
+                    }
+                } catch (e) {}
+            }
+
+            playPhotoFinishShutter() {
+                if (!this.enabled) return;
+                try {
+                    this.init();
+                    if (!this.ctx || !this.masterBus) return;
+                    const now = this.ctx.currentTime;
+                    if (this.noiseBuffer) {
+                        [0, 0.075].forEach((offset, idx) => {
+                            const src = this.ctx.createBufferSource();
+                            src.buffer = this.noiseBuffer;
+                            const hpf = this.ctx.createBiquadFilter();
+                            const gain = this.ctx.createGain();
+                            hpf.type = 'highpass';
+                            hpf.frequency.setValueAtTime(idx === 0 ? 2400 : 3200, now + offset);
+                            gain.gain.setValueAtTime(0.22, now + offset);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.055);
+                            src.connect(hpf);
+                            hpf.connect(gain);
+                            gain.connect(this.masterBus);
+                            src.start(now + offset);
+                            src.stop(now + offset + 0.06);
+                        });
+                    }
                 } catch (e) {}
             }
 
@@ -676,15 +1057,42 @@
                 if (!this.enabled) return;
                 try {
                     this.init();
-                    if (!this.ctx) return;
-                    const notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50];
-                    const times = [0, 0.13, 0.26, 0.39, 0.55, 0.70];
-                    const durations = [0.12, 0.12, 0.12, 0.15, 0.12, 0.45];
-                    notes.forEach((n, i) => {
-                        setTimeout(() => {
-                            this.playBeep(n, durations[i], 'triangle', 0.18);
-                        }, times[i] * 1000);
+                    if (!this.ctx || !this.masterBus) return;
+                    const now = this.ctx.currentTime;
+
+                    const chordNotes = [
+                        { freq: 523.25, t: 0.04, dur: 0.14 },
+                        { freq: 659.25, t: 0.18, dur: 0.14 },
+                        { freq: 783.99, t: 0.32, dur: 0.14 },
+                        { freq: 1046.50, t: 0.46, dur: 0.22 },
+                        { freq: 783.99, t: 0.68, dur: 0.14 },
+                        { freq: 1046.50, t: 0.84, dur: 0.75 }
+                    ];
+
+                    chordNotes.forEach(n => {
+                        this.scheduleBrassNote(n.freq, now + n.t, n.dur, 0.16);
+                        this.scheduleBrassNote(n.freq * 0.5, now + n.t, n.dur, 0.09);
                     });
+
+                    if (this.noiseBuffer) {
+                        const cheer = this.ctx.createBufferSource();
+                        cheer.buffer = this.noiseBuffer;
+                        const bpf = this.ctx.createBiquadFilter();
+                        const cGain = this.ctx.createGain();
+                        bpf.type = 'bandpass';
+                        bpf.frequency.setValueAtTime(1150, now);
+                        bpf.Q.setValueAtTime(0.65, now);
+
+                        cGain.gain.setValueAtTime(0.001, now);
+                        cGain.gain.linearRampToValueAtTime(0.18, now + 0.25);
+                        cGain.gain.exponentialRampToValueAtTime(0.001, now + 1.48);
+
+                        cheer.connect(bpf);
+                        bpf.connect(cGain);
+                        cGain.connect(this.masterBus);
+                        cheer.start(now);
+                        cheer.stop(now + 1.5);
+                    }
                 } catch (e) {}
             }
         }
@@ -692,29 +1100,30 @@
         const soundEngine = new RaceSoundEngine();
 
         /* ============================================================================
-         * 3. APPLICATION STATE & HORSE DATA STRUCTURES (STRICT STRAIGHT LINE & EVEN SPACING)
+         * 3. APPLICATION STATE & HORSE DATA STRUCTURES
          * ============================================================================ */
         const state = {
             participants: [],       // Array of horse objects
             raceDurationSec: 15,    // Configured race duration in seconds
-            horseScale: 1.8,        // Large visual scale for horses & riders (user adjustable 0.8x - 4.5x)
-            labelMode: 'all',       // 'all' (顯示全部名字) | 'leaders' (突顯領先 Top 15 名字)
+            horseScale: 2.6,        // Large visual scale for 10 horses (0.8x - 4.5x)
+            nameScale: 1.2,         // Name tag size multiplier (0.8x - 2.0x)
+            labelMode: 'all',       // 'all' | 'leaders'
             pinnedHorseId: null,    // Optional horse ID highlighted by user
-            raceState: 'idle',      // 'idle' | 'countdown' | 'racing' | 'finished'
+            raceState: 'idle',      // 'idle' | 'countdown' | 'racing' | 'holding' | 'finished'
             raceStartTime: 0,
             elapsedSec: 0,
             finishedHorses: [],     // Ordered list of horses that crossed finish line
             liveRankMap: new Map(), // Real-time rank lookup (horse.id -> 1..N)
             lastCommentaryTime: 0,
-            dustParticles: [],      // Turf dust particles for visual immersion
-            cameraFlashAlpha: 0,    // Photo-finish flash effect
+            dustParticles: [],      // Turf dust particles
+            holdInterval: null,     // Timer for finish-line hold countdown
+            holdLocked: false,      // When true, keeps finish-line screen frozen indefinitely
             fpsFrames: 0,
             fpsLastCheck: performance.now(),
             currentFps: 60,
             modalActiveTab: 'top10' // 'top10' | 'all'
         };
 
-        // Helper to set horse scale and sync slider & text badge
         function setHorseScale(newScale) {
             const clamped = Math.max(0.8, Math.min(4.5, Math.round(newScale * 10) / 10));
             state.horseScale = clamped;
@@ -724,7 +1133,15 @@
             if (valLabel) valLabel.textContent = `${clamped.toFixed(1)}x`;
         }
 
-        // Automatically pick an impressive horse size when loading a roster count
+        function setNameScale(newScale) {
+            const clamped = Math.max(0.8, Math.min(2.0, Math.round(newScale * 10) / 10));
+            state.nameScale = clamped;
+            const slider = document.getElementById('nameScaleSlider');
+            const valLabel = document.getElementById('nameScaleValue');
+            if (slider) slider.value = clamped;
+            if (valLabel) valLabel.textContent = `${clamped.toFixed(1)}x`;
+        }
+
         function getRecommendedHorseScale(count) {
             if (count <= 6) return 3.2;
             if (count <= 12) return 2.6;
@@ -733,7 +1150,6 @@
             return 1.6;
         }
 
-        // Helper to generate inline SVG of a racehorse with its assigned Jockey Silk & Color Outlook
         function createHorseBadgeSVG(outlook, horseNum, size = 36) {
             return `
             <svg width="${size}" height="${size}" viewBox="0 0 48 48" class="shrink-0 drop-shadow">
@@ -747,7 +1163,11 @@
             </svg>`;
         }
 
-        // Parse textarea lines into structured horse objects with strictly EVEN vertical spacing
+        /**
+         * Guarantees 1-10 (and up to 12) horses each receive a 100% unique, non-repeating color:
+         * - Default order: #1 = Red, #2 = Blue, #3 = Gold, #4 = Emerald, #5 = Purple, #6 = Cyan, #7 = Orange, #8 = Magenta, #9 = Lime, #10 = Indigo
+         * - When shuffling colors: uses Fisher-Yates permutation without replacement so #1..#10 STILL have zero duplicate colors!
+         */
         function syncParticipantsFromTextarea(shuffleColors = false, autoAdjustScale = false) {
             const rawText = document.getElementById('namesTextarea').value;
             const lines = rawText
@@ -755,27 +1175,35 @@
                 .map(s => s.trim())
                 .filter(s => s.length > 0);
 
-            const previousMap = new Map();
-            if (!shuffleColors) {
-                state.participants.forEach(p => previousMap.set(p.name, p));
-            }
-
             const total = Math.max(1, lines.length);
+            const paletteLen = HORSE_OUTLOOK_PALETTE.length;
 
             if (autoAdjustScale) {
                 setHorseScale(getRecommendedHorseScale(total));
             }
 
+            // Build unique non-repeating color assignment list
+            let assignedPaletteIndices = [];
+            if (!shuffleColors) {
+                for (let i = 0; i < lines.length; i++) {
+                    assignedPaletteIndices.push(i % paletteLen);
+                }
+            } else {
+                // Shuffle in blocks of paletteLen without replacement so 1-10 (or 1-12) NEVER repeat a color!
+                while (assignedPaletteIndices.length < lines.length) {
+                    const block = Array.from({ length: paletteLen }, (_, idx) => idx);
+                    for (let i = block.length - 1; i > 0; i--) {
+                        const r = Math.floor(Math.random() * (i + 1));
+                        [block[i], block[r]] = [block[r], block[i]];
+                    }
+                    assignedPaletteIndices.push(...block);
+                }
+            }
+
             state.participants = lines.map((name, idx) => {
                 const number = idx + 1;
-                const prev = previousMap.get(name);
-                const outlookIndex = shuffleColors
-                    ? Math.floor(Math.random() * HORSE_OUTLOOK_PALETTE.length)
-                    : (prev ? prev.outlookIndex : idx % HORSE_OUTLOOK_PALETTE.length);
+                const outlookIndex = assignedPaletteIndices[idx];
                 const outlook = HORSE_OUTLOOK_PALETTE[outlookIndex];
-
-                // Strictly EVEN vertical distribution from top to bottom:
-                // Every horse gets an exact equidistant horizontal lane (0.5/total, 1.5/total, ..., (total-0.5)/total)
                 const evenYRatio = (idx + 0.5) / total;
 
                 return {
@@ -785,9 +1213,9 @@
                     outlookIndex,
                     outlook,
                     baseYRatio: evenYRatio,
-                    yRatio: evenYRatio,   // Never changes vertically — runs in a pure straight horizontal line!
-                    startXStagger: 0,     // All horses line up cleanly along the starting gate line
-                    progress: 0,          // 0.0 (Start Gate) to 1.0 (Finish Line)
+                    yRatio: evenYRatio,
+                    startXStagger: 0,
+                    progress: 0,
                     finishTime: null,
                     finishRank: null,
                     gallopPhase: (idx * 1.3) % (Math.PI * 2),
@@ -795,11 +1223,9 @@
                 };
             });
 
-            // Initialize default live ranks
             state.liveRankMap.clear();
             state.participants.forEach((h, i) => state.liveRankMap.set(h.id, i + 1));
 
-            // Update UI counters
             document.getElementById('headerHorseCount').textContent = state.participants.length;
             document.getElementById('sidebarCountBadge').textContent = `共 ${state.participants.length} 人`;
             document.getElementById('modalTotalCount').textContent = state.participants.length;
@@ -808,11 +1234,6 @@
             resizeAndDrawCanvas();
         }
 
-        /**
-         * Generates a randomized, multi-phase speed profile for every horse so that:
-         * - Different horses surge and overtake in the early, middle, and final straight segments
-         * - The #1 winning horse crosses `progress = 1.0` accurately at `state.raceDurationSec`
-         */
         function generateRacePacingProfiles() {
             const totalHorses = state.participants.length;
             if (totalHorses === 0) return;
@@ -822,16 +1243,15 @@
             const finishOffsets = [];
             for (let i = 0; i < totalHorses; i++) {
                 if (i === 0) {
-                    finishOffsets.push(0); // Winner hits finish line right as countdown reaches 00:00!
+                    finishOffsets.push(0);
                 } else if (i < 10) {
-                    finishOffsets.push(0.035 * i + Math.pow(i / 10, 1.3) * (duration * 0.055) + Math.random() * 0.04);
+                    finishOffsets.push(0.025 * i + Math.pow(i / 10, 1.25) * Math.min(0.45, duration * 0.03) + Math.random() * 0.02);
                 } else {
                     const ratio = i / totalHorses;
-                    finishOffsets.push(duration * (0.05 + ratio * 0.16 + Math.random() * 0.025));
+                    finishOffsets.push(duration * (0.04 + ratio * 0.14 + Math.random() * 0.02));
                 }
             }
 
-            // Unbiased Fisher-Yates shuffle of target ranks (Fair company lucky draw!)
             const indices = Array.from({ length: totalHorses }, (_, i) => i);
             for (let i = indices.length - 1; i > 0; i--) {
                 const r = Math.floor(Math.random() * (i + 1));
@@ -884,24 +1304,25 @@
             } else if (u <= 1.0) {
                 baseProgress = 0.25 * (s0 + s1 + s2) + (u - 0.75) * s3;
             } else {
-                baseProgress = 1.0 + (u - 1.0) * s3 * 0.65;
+                const overshoot = Math.min(0.035, (u - 1.0) * s3 * 0.35);
+                baseProgress = 1.0 + overshoot;
             }
 
             const waveWindow = u < 1.0 ? Math.sin(u * Math.PI) : 0;
             const microSurge = Math.sin(u * Math.PI * prof.freq1 * 2 + prof.phase1) * 0.022 * waveWindow;
 
-            return Math.max(0, baseProgress + microSurge);
+            return Math.max(0, Math.min(1.035, baseProgress + microSurge));
         }
 
         /* ============================================================================
-         * 4. SIDEBAR ROSTER & COLOR PALETTE UI RENDERING (NO ODDS)
+         * 4. SIDEBAR ROSTER & COLOR PALETTE UI RENDERING
          * ============================================================================ */
         function renderColorSwatches() {
             const container = document.getElementById('colorPaletteSwatches');
-            container.innerHTML = HORSE_OUTLOOK_PALETTE.map(c => `
-                <div title="${c.name}" class="h-5 rounded-md border flex items-center justify-center overflow-hidden shadow-sm"
-                     style="background:${c.silkPrimary}; border-color:${c.badgeBorder}">
-                    <span class="w-2 h-2 rounded-full" style="background:${c.silkSecondary}"></span>
+            container.innerHTML = HORSE_OUTLOOK_PALETTE.map((c, idx) => `
+                <div title="${c.name}" class="h-5 rounded-md border flex items-center justify-center overflow-hidden shadow-sm text-[10px] font-mono font-black"
+                     style="background:${c.silkPrimary}; border-color:${c.badgeBorder}; color:${c.silkSecondary}">
+                    ${idx + 1}
                 </div>
             `).join('');
         }
@@ -982,13 +1403,20 @@
         const canvas = document.getElementById('raceCanvas');
         const ctx = canvas.getContext('2d');
 
+        function getTrackHorizontalBounds(width) {
+            // Give generous left start margin so large horses + name pills never overlap at the Start Gate!
+            const startX = Math.min(255, Math.max(150, Math.round(105 + 32 * state.horseScale)));
+            const finishX = width - 115;
+            const raceDistancePx = Math.max(240, finishX - startX);
+            return { startX, finishX, raceDistancePx };
+        }
+
         function resizeAndDrawCanvas() {
             const viewport = document.getElementById('canvasViewport');
             const dpr = Math.min(window.devicePixelRatio || 1, 2);
             const width = viewport.clientWidth || window.innerWidth;
             const height = viewport.clientHeight || (window.innerHeight - 95);
 
-            // Always fit 100% inside the single screen viewport without any scrollbars!
             canvas.style.width = `${width}px`;
             canvas.style.height = `${height}px`;
             canvas.width = Math.floor(width * dpr);
@@ -1008,39 +1436,31 @@
             const trackBottom = height - 30;
             const trackHeight = Math.max(200, trackBottom - trackTop);
 
-            // Track horizontal margins (Start Gate on Left, Finish Line on Right)
-            const startX = 115;
-            const finishX = width - 110;
-            const raceDistancePx = Math.max(240, finishX - startX);
+            const { startX, finishX, raceDistancePx } = getTrackHorizontalBounds(width);
 
-            // 1. Draw Rich Night Turf Grass Stripes
+            // 1. Draw Rich Deep Emerald Night Turf Grass Stripes
             const numStripes = 18;
             const stripeW = width / numStripes;
             for (let i = 0; i < numStripes; i++) {
-                ctx.fillStyle = i % 2 === 0 ? '#072619' : '#0a3121';
+                ctx.fillStyle = i % 2 === 0 ? '#062317' : '#092e1f';
                 ctx.fillRect(i * stripeW, 0, stripeW + 1, height);
             }
 
-            // Compute vertical usable lane region so horses are evenly spaced from top to bottom
             const totalHorses = state.participants.length;
             const padTop = trackTop + (totalHorses <= 15 ? 20 : 34);
             const padBottom = trackBottom - (totalHorses <= 15 ? 16 : 22);
             const usableH = Math.max(120, padBottom - padTop);
 
-            // If participant count is <= 25, render crisp individual horizontal lane lines & gate stall numbers
-            // so 5–10 or 20 horses look unmistakably structured and evenly spaced!
             if (totalHorses > 0 && totalHorses <= 25) {
                 const laneSlotH = usableH / totalHorses;
                 for (let i = 0; i <= totalHorses; i++) {
                     const lineY = padTop + i * laneSlotH;
-                    // Alternating subtle turf lane tint
                     if (i < totalHorses && i % 2 === 1) {
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.022)';
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
                         ctx.fillRect(0, lineY, width, laneSlotH);
                     }
-                    // Horizontal lane divider line
                     ctx.save();
-                    ctx.strokeStyle = 'rgba(52, 211, 153, 0.22)';
+                    ctx.strokeStyle = 'rgba(52, 211, 153, 0.24)';
                     ctx.lineWidth = 1;
                     ctx.setLineDash([10, 8]);
                     ctx.beginPath();
@@ -1049,42 +1469,40 @@
                     ctx.stroke();
                     ctx.restore();
 
-                    // Starting Gate Stall Box & Lane Number on the left
                     if (i < totalHorses) {
                         const centerY = lineY + laneSlotH * 0.5;
-                        ctx.fillStyle = 'rgba(4, 20, 13, 0.78)';
-                        ctx.strokeStyle = 'rgba(52, 211, 153, 0.45)';
-                        ctx.lineWidth = 1.2;
+                        const hOutlook = state.participants[i].outlook;
+                        ctx.fillStyle = 'rgba(4, 20, 13, 0.92)';
+                        ctx.strokeStyle = hOutlook.badgeBorder;
+                        ctx.lineWidth = 1.6;
                         ctx.beginPath();
                         ctx.roundRect(startX - 32, centerY - 10, 24, 20, 4);
                         ctx.fill();
                         ctx.stroke();
 
-                        ctx.fillStyle = '#6ee7b7';
-                        ctx.font = '800 10px "JetBrains Mono", monospace';
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = '900 10.5px "JetBrains Mono", monospace';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
                         ctx.fillText(`${i + 1}`, startX - 20, centerY + 0.5);
                     }
                 }
             } else {
-                // For large packs (> 25 horses), draw subtle horizontal turf mowing bands
                 const hBands = 6;
                 const bandH = trackHeight / hBands;
                 for (let b = 0; b < hBands; b++) {
                     if (b % 2 === 1) {
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.015)';
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.018)';
                         ctx.fillRect(0, trackTop + b * bandH, width, bandH);
                     }
                 }
             }
 
-            // 2. Top & Bottom Turf Running Rails (欄杆)
+            // 2. Top & Bottom Turf Running Rails
             ctx.fillStyle = '#04140d';
             ctx.fillRect(0, 0, width, trackTop);
             ctx.fillRect(0, trackBottom, width, height - trackBottom);
 
-            // White & Emerald Rail Bars with Fence Posts
             ctx.strokeStyle = '#34d399';
             ctx.lineWidth = 2.5;
             ctx.beginPath();
@@ -1094,7 +1512,7 @@
             ctx.lineTo(width, trackBottom);
             ctx.stroke();
 
-            // Distance Markers along the track
+            // Distance Markers
             const markers = [
                 { pct: 0, label: 'START 起跑閘門' },
                 { pct: 0.25, label: '25% 賽段' },
@@ -1106,8 +1524,8 @@
             markers.forEach(m => {
                 const mx = startX + m.pct * raceDistancePx;
                 ctx.save();
-                ctx.strokeStyle = m.pct === 1.0 ? 'rgba(251, 191, 36, 0.75)' : 'rgba(52, 211, 153, 0.18)';
-                ctx.lineWidth = m.pct === 1.0 ? 2.5 : 1.2;
+                ctx.strokeStyle = m.pct === 1.0 ? 'rgba(251, 191, 36, 0.9)' : 'rgba(52, 211, 153, 0.2)';
+                ctx.lineWidth = m.pct === 1.0 ? 3 : 1.2;
                 ctx.setLineDash(m.pct === 1.0 ? [] : [8, 8]);
                 ctx.beginPath();
                 ctx.moveTo(mx, trackTop);
@@ -1121,6 +1539,17 @@
                 ctx.fillText(m.label, mx, trackBottom + 19);
             });
 
+            // Subtle Golden Finish Line Beam during Hold / Finished state
+            const isFinishHold = state.raceState === 'holding' || state.raceState === 'finished';
+            if (isFinishHold) {
+                const grad = ctx.createLinearGradient(finishX - 110, 0, finishX + 25, 0);
+                grad.addColorStop(0, 'rgba(251, 191, 36, 0)');
+                grad.addColorStop(0.8, 'rgba(251, 191, 36, 0.12)');
+                grad.addColorStop(1, 'rgba(251, 191, 36, 0.20)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(finishX - 110, trackTop, 135, trackHeight);
+            }
+
             // 3. Draw Checkered Finish Line & Mirror Post
             const checkerSize = 9;
             for (let y = trackTop; y < trackBottom; y += checkerSize) {
@@ -1131,7 +1560,6 @@
                 ctx.fillRect(finishX, y, checkerSize, Math.min(checkerSize, trackBottom - y));
             }
 
-            // Winning Post Disc on Top Rail
             ctx.fillStyle = '#ef4444';
             ctx.beginPath();
             ctx.arc(finishX - 4, trackTop - 13, 10, 0, Math.PI * 2);
@@ -1143,23 +1571,20 @@
             // 4. Draw Turf Dust Particles
             drawAndStepDustParticles();
 
-            // 5. Compute Screen Coordinates (X, Y) for Every Horse and Sort by Y for 2.5D Overlapping!
+            // 5. Compute Screen Coordinates (X, Y) for Every Horse and Sort by Y for 2.5D Overlapping
             const renderList = state.participants.map(horse => {
                 const hx = startX + horse.progress * raceDistancePx;
-                // Strictly straight horizontal line at horse.baseYRatio!
                 const hy = padTop + horse.baseYRatio * usableH;
                 const liveRank = horse.finishRank || state.liveRankMap.get(horse.id) || 999;
                 const isPinned = horse.id === state.pinnedHorseId;
-                return { horse, hx, hy, liveRank, isPinned };
+                return { horse, hx, hy, liveRank, isPinned, badgeY: hy };
             });
 
-            // Painter's Algorithm (2.5D Depth Sort):
-            // Horses higher up on the screen (smaller Y) are drawn first; horses lower on the screen overlap in front!
             renderList.sort((a, b) => a.hy - b.hy);
 
-            // Pass 1: Draw all LARGE Horse & Jockey Bodies + Standard Name Tags in 2.5D Y-order
+            // Pass 1: Draw all Horse & Jockey Bodies + Standard Name Tags
             renderList.forEach(item => {
-                const isTop10 = item.liveRank <= 10;
+                const isTop10 = item.liveRank <= 10 && state.raceState !== 'idle';
                 drawLargeHorseAndRider(
                     ctx,
                     item.horse,
@@ -1168,42 +1593,44 @@
                     state.horseScale,
                     item.liveRank,
                     item.isPinned,
-                    !isTop10 && !item.isPinned // Draw standard name tag now; Top 10 & Pinned get priority overlay pass
+                    !isTop10 && !item.isPinned
                 );
             });
 
             // Pass 2: Priority Foreground Pass for Top 10 Leaders & Pinned Horse Name Badges
-            // So even in a 120-horse stampede, the leading horses and their names are NEVER obscured!
-            renderList
-                .filter(item => item.liveRank <= 10 || item.isPinned)
-                .sort((a, b) => b.liveRank - a.liveRank) // Draw #1 Champion on very top
+            const priorityItems = renderList
+                .filter(item => (item.liveRank <= 10 && state.raceState !== 'idle') || item.isPinned)
+                .sort((a, b) => a.hy - b.hy);
+
+            if (isFinishHold && priorityItems.length > 1) {
+                const minGap = Math.max(26, 22 * state.nameScale);
+                for (let i = 1; i < priorityItems.length; i++) {
+                    if (priorityItems[i].badgeY - priorityItems[i - 1].badgeY < minGap) {
+                        priorityItems[i].badgeY = Math.min(trackBottom - 16, priorityItems[i - 1].badgeY + minGap);
+                    }
+                }
+            }
+
+            priorityItems
+                .sort((a, b) => b.liveRank - a.liveRank)
                 .forEach(item => {
                     drawHorseNameBadge(
                         ctx,
                         item.horse,
                         item.hx,
-                        item.hy,
+                        item.badgeY,
                         state.horseScale,
                         item.liveRank,
                         item.isPinned,
                         true
                     );
                 });
-
-            // 6. Photo-Finish Camera Flash Effect when winner crosses the line
-            if (state.cameraFlashAlpha > 0.01) {
-                ctx.fillStyle = `rgba(255, 250, 220, ${state.cameraFlashAlpha})`;
-                ctx.fillRect(0, 0, width, height);
-                state.cameraFlashAlpha *= 0.86;
-            }
         }
 
-        // Draws a LARGE, vivid, detailed Horse & Jockey sprite that overlaps naturally with other horses
         function drawLargeHorseAndRider(ctx, horse, x, y, scale, liveRank, isPinned, drawTagNow) {
             const outlook = horse.outlook;
             const isRacing = state.raceState === 'racing';
 
-            // Galloping bob, body pitch & leg stride animation
             const phase = horse.gallopPhase;
             const stride = isRacing ? Math.sin(phase) : 0;
             const strideCos = isRacing ? Math.cos(phase) : 0;
@@ -1214,27 +1641,28 @@
             ctx.translate(x, y + bobY);
             ctx.scale(scale, scale);
 
-            // Golden Spotlight Halo if Pinned or #1 Leader during race
             if (isPinned || (liveRank === 1 && state.raceState !== 'idle')) {
-                ctx.fillStyle = isPinned ? 'rgba(251, 191, 36, 0.35)' : 'rgba(251, 191, 36, 0.20)';
+                const isHold = state.raceState === 'holding' || state.raceState === 'finished';
+                ctx.fillStyle = isHold
+                    ? 'rgba(251, 191, 36, 0.28)'
+                    : (isPinned ? 'rgba(251, 191, 36, 0.30)' : 'rgba(251, 191, 36, 0.22)');
                 ctx.beginPath();
-                ctx.ellipse(-14, -2, 26, 15, 0, 0, Math.PI * 2);
+                ctx.ellipse(-14, -2, isHold ? 28 : 26, isHold ? 16 : 15, 0, 0, Math.PI * 2);
                 ctx.fill();
             }
 
-            // Ground Shadow on Turf (stays anchored near turf level)
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
+            // Ground Shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.48)';
             ctx.beginPath();
             ctx.ellipse(-13, 10 - bobY / scale, 16, 4.2, 0, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.rotate(bodyTilt);
 
-            // --- 1. ANIMATED GALLOPING LEGS (4 distinct articulated legs) ---
+            // 1. Animated Galloping Legs
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
 
-            // Far Hind Leg & Far Front Leg (slightly darker shade for depth)
             ctx.strokeStyle = '#1f2937';
             ctx.lineWidth = 2.8;
             ctx.beginPath();
@@ -1244,7 +1672,6 @@
             ctx.lineTo(1 - strideCos * 7, 9.5);
             ctx.stroke();
 
-            // Near Hind Leg & Near Front Leg (Horse Coat Color + White Hooves)
             ctx.strokeStyle = outlook.horseCoat;
             ctx.lineWidth = 3.2;
             ctx.beginPath();
@@ -1254,7 +1681,6 @@
             ctx.lineTo(5 + stride * 8, 9);
             ctx.stroke();
 
-            // White Hoof highlights on near legs
             ctx.strokeStyle = '#f8fafc';
             ctx.lineWidth = 2.6;
             ctx.beginPath();
@@ -1264,7 +1690,7 @@
             ctx.lineTo(5 + stride * 8, 9);
             ctx.stroke();
 
-            // --- 2. FLOWING TAIL ---
+            // 2. Flowing Tail
             ctx.strokeStyle = outlook.horseMane;
             ctx.lineWidth = 3.2;
             ctx.beginPath();
@@ -1272,31 +1698,28 @@
             ctx.quadraticCurveTo(-33, -6 + stride * 3, -37, 0 + stride * 4);
             ctx.stroke();
 
-            // --- 3. MUSCULAR HORSE BODY, NECK & HEAD (With crisp outline so overlapping horses pop!) ---
+            // 3. Muscular Horse Body, Neck & Head
             ctx.fillStyle = outlook.horseCoat;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
             ctx.lineWidth = 1.1;
 
-            // Torso / Barrel
             ctx.beginPath();
             ctx.roundRect(-26, -6.5, 25, 11, 5.5);
             ctx.fill();
             ctx.stroke();
 
-            // Neck & Head reaching forward (Nose tip at x = 0 for exact finish-line judgement)
             ctx.beginPath();
             ctx.moveTo(-6, -4);
             ctx.lineTo(1, -13);
-            ctx.lineTo(4, -15); // Ears
+            ctx.lineTo(4, -15);
             ctx.lineTo(5, -12.5);
-            ctx.lineTo(10, -8.5); // Nose tip
+            ctx.lineTo(10, -8.5);
             ctx.lineTo(7, -4.5);
             ctx.lineTo(0, -3);
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
 
-            // Flowing Horse Mane
             ctx.strokeStyle = outlook.horseMane;
             ctx.lineWidth = 2.6;
             ctx.beginPath();
@@ -1304,7 +1727,6 @@
             ctx.lineTo(2, -13);
             ctx.stroke();
 
-            // White Racing Bridle / Blinkers & Eye
             ctx.strokeStyle = outlook.silkSecondary;
             ctx.lineWidth = 1.3;
             ctx.beginPath();
@@ -1319,7 +1741,7 @@
             ctx.arc(4.2, -9.8, 1.1, 0, Math.PI * 2);
             ctx.fill();
 
-            // --- 4. SADDLE CLOTH WITH HORSE NUMBER ---
+            // 4. Saddle Cloth with Horse Number
             ctx.fillStyle = '#071912';
             ctx.strokeStyle = outlook.badgeBorder;
             ctx.lineWidth = 1.4;
@@ -1334,8 +1756,7 @@
             ctx.textBaseline = 'middle';
             ctx.fillText(`${horse.number}`, -14, -1);
 
-            // --- 5. PROMINENT JOCKEY RIDER IN VIBRANT SILKS ---
-            // Jockey Boots & White Breeches (Legs)
+            // 5. Prominent Jockey Rider in Vibrant Silks
             ctx.strokeStyle = '#f8fafc';
             ctx.lineWidth = 2.4;
             ctx.beginPath();
@@ -1343,7 +1764,6 @@
             ctx.lineTo(-10, -2);
             ctx.stroke();
 
-            // Jockey Torso (Crouched aerodynamic racing posture with colorful silk jersey)
             ctx.fillStyle = outlook.silkPrimary;
             ctx.strokeStyle = outlook.silkSecondary;
             ctx.lineWidth = 1.4;
@@ -1352,7 +1772,6 @@
             ctx.fill();
             ctx.stroke();
 
-            // Jockey Arm & Whip/Reins reaching forward
             ctx.strokeStyle = outlook.silkSecondary;
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -1360,7 +1779,6 @@
             ctx.lineTo(-1, -8.5 + stride * 1.2);
             ctx.stroke();
 
-            // Jockey Helmet with Dual-Tone Cap & Goggles
             ctx.fillStyle = outlook.silkPrimary;
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 1.2;
@@ -1369,7 +1787,6 @@
             ctx.fill();
             ctx.stroke();
 
-            // Helmet Stripe
             ctx.fillStyle = outlook.silkSecondary;
             ctx.beginPath();
             ctx.arc(-4.5, -14, 2.0, 0, Math.PI * 2);
@@ -1377,75 +1794,86 @@
 
             ctx.restore();
 
-            // Draw Name Badge if requested in this pass
             if (drawTagNow) {
                 drawHorseNameBadge(ctx, horse, x, y + bobY, scale, liveRank, isPinned, false);
             }
         }
 
-        // Draws the crisp Participant Name Tag & Rank Badge above/behind the horse
         function drawHorseNameBadge(ctx, horse, x, y, scale, liveRank, isPinned, isPriorityLayer) {
             const isTop10 = liveRank <= 10 && state.raceState !== 'idle';
+            const isFinishHold = state.raceState === 'holding' || state.raceState === 'finished';
 
-            // If user selected "突顯領先名字" (leaders only), hide non-Top-15 tags during the race to keep view ultra-clean
             if (state.labelMode === 'leaders' && !isTop10 && liveRank > 15 && !isPinned && state.raceState === 'racing') {
                 return;
             }
 
             const outlook = horse.outlook;
-            const fontSize = (isTop10 || isPinned) ? 12.5 : 11;
-            ctx.font = `800 ${fontSize}px "Inter", "Noto Sans TC", sans-serif`;
 
-            // Position badge neatly above-left of the horse so the horse & rider stay completely visible!
-            const shortName = horse.name.length > 16 ? horse.name.slice(0, 15) + '…' : horse.name;
-            const rankPrefix = (isTop10 && state.raceState !== 'idle') ? `[第${liveRank}名] ` : '';
+            let baseFont = 14;
+            if (isFinishHold && liveRank === 1) {
+                baseFont = 22;
+            } else if (isFinishHold && liveRank <= 3) {
+                baseFont = 19;
+            } else if (isFinishHold && isTop10) {
+                baseFont = 17.5;
+            } else if (isTop10 || isPinned) {
+                baseFont = 16.5;
+            }
+
+            const fontSize = Math.round(baseFont * state.nameScale);
+            ctx.font = `900 ${fontSize}px "Inter", "Noto Sans TC", sans-serif`;
+
+            const shortName = horse.name.length > 22 ? horse.name.slice(0, 21) + '…' : horse.name;
+            let rankPrefix = '';
+            if (isTop10 && state.raceState !== 'idle') {
+                rankPrefix = liveRank === 1 ? '👑 第1名 ' : `[第${liveRank}名] `;
+            }
             const labelText = `${rankPrefix}#${horse.number} ${shortName}`;
 
             const textW = ctx.measureText(labelText).width;
-            const pillW = textW + 14;
-            const pillH = fontSize + 7;
+            const pillW = textW + 18;
+            const pillH = fontSize + 10;
 
-            // Place pill slightly behind the tail or above the jockey helmet
-            const pillX = Math.max(6, x - 26 * scale - pillW);
-            const pillY = y - pillH / 2 - 4;
+            // Place cleanly behind the horse's tail without overlapping the horse body!
+            const tailX = x - 34 * scale;
+            const pillX = Math.max(8, tailX - pillW);
+            const pillY = y - pillH / 2 - 2;
 
             ctx.save();
 
-            // Pill Background
             if (isPinned) {
-                ctx.fillStyle = 'rgba(251, 191, 36, 0.96)';
+                ctx.fillStyle = 'rgba(251, 191, 36, 0.98)';
                 ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 2.4;
             } else if (liveRank === 1 && state.raceState !== 'idle') {
-                ctx.fillStyle = 'rgba(245, 158, 11, 0.95)';
+                ctx.fillStyle = 'rgba(245, 158, 11, 0.98)';
                 ctx.strokeStyle = '#fef08a';
-                ctx.lineWidth = 1.8;
+                ctx.lineWidth = 2.4;
             } else if (isTop10) {
-                ctx.fillStyle = 'rgba(6, 32, 22, 0.92)';
+                ctx.fillStyle = 'rgba(4, 24, 16, 0.96)';
                 ctx.strokeStyle = outlook.badgeBorder;
-                ctx.lineWidth = 1.6;
+                ctx.lineWidth = 2;
             } else {
-                ctx.fillStyle = 'rgba(4, 20, 13, 0.78)';
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
-                ctx.lineWidth = 1;
+                ctx.fillStyle = 'rgba(4, 20, 13, 0.90)';
+                ctx.strokeStyle = outlook.badgeBorder;
+                ctx.lineWidth = 1.4;
             }
 
             ctx.beginPath();
-            ctx.roundRect(pillX, pillY, pillW, pillH, 6);
+            ctx.roundRect(pillX, pillY, pillW, pillH, 8);
             ctx.fill();
             ctx.stroke();
 
             // Left silk color indicator bar inside pill
             ctx.fillStyle = outlook.silkPrimary;
             ctx.beginPath();
-            ctx.roundRect(pillX + 1, pillY + 1, 4.5, pillH - 2, [5, 0, 0, 5]);
+            ctx.roundRect(pillX + 1.5, pillY + 1.5, 6, pillH - 3, [6, 0, 0, 6]);
             ctx.fill();
 
-            // Label Text
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = (isPinned || (liveRank === 1 && state.raceState !== 'idle')) ? '#090d16' : '#ffffff';
-            ctx.fillText(labelText, pillX + 9, pillY + pillH / 2 + 0.5);
+            ctx.fillText(labelText, pillX + 12, pillY + pillH / 2 + 0.5);
 
             ctx.restore();
         }
@@ -1481,7 +1909,7 @@
         }
 
         /* ============================================================================
-         * 6. LIVE RACE LOOP, COMMENTARY & TOP 10 LIVE TICKER
+         * 6. LIVE RACE LOOP, FINISH-LINE HOLD & COMMENTARY
          * ============================================================================ */
         function updateCommentary(text) {
             const el = document.getElementById('commentaryText');
@@ -1503,7 +1931,7 @@
                     <span class="w-4 h-4 rounded flex items-center justify-center text-[10px] ${rankBadgeClass}">${idx + 1}</span>
                     <span class="w-2 h-2 rounded-full shrink-0" style="background:${h.outlook.silkPrimary}"></span>
                     <span class="font-mono font-bold text-amber-300">#${h.number}</span>
-                    <span class="text-white font-semibold truncate max-w-[85px]">${escapeHtml(h.name)}</span>
+                    <span class="text-white font-semibold truncate max-w-[95px]">${escapeHtml(h.name)}</span>
                 </div>`;
             }).join('');
             document.getElementById('liveTop10Container').innerHTML = top10Html;
@@ -1518,11 +1946,11 @@
                 if (leadProgress < 0.25) {
                     updateCommentary(`閘門打開！#${leader.number} ${leader.name} 率先衝出，#${chaser.number} ${chaser.name} 緊咬在後！`);
                 } else if (leadProgress < 0.55) {
-                    updateCommentary(`大馬群中段加速！#${leader.number} ${leader.name} 暫居榜首，#${third.number} ${third.name} 從後突圍！`);
+                    updateCommentary(`馬群中段加速！#${leader.number} ${leader.name} 暫居榜首，#${third.number} ${third.name} 從後突圍！`);
                 } else if (leadProgress < 0.82) {
                     updateCommentary(`進入最後直路！#${leader.number} ${leader.name} 與 #${chaser.number} ${chaser.name} 並駕齊驅，爭奪頭獎！`);
                 } else if (leadProgress < 1.0) {
-                    updateCommentary(`最後衝刺！#${leader.number} ${leader.name} 全力衝線，Top 10 大獎即將揭曉！`);
+                    updateCommentary(`最後衝刺！#${leader.number} ${leader.name} 全力衝線，大獎即將揭曉！`);
                 }
             }
         }
@@ -1530,13 +1958,15 @@
         function startRaceSequence() {
             if (state.raceState === 'racing' || state.raceState === 'countdown') return;
 
+            clearHoldTimers();
+            hideFinishHoldBanner();
+
             syncParticipantsFromTextarea(false);
             if (state.participants.length < 2) {
                 showToast('請至少輸入 2 個參賽名字方可開始抽獎！', 'warning');
                 return;
             }
 
-            // Auto-hide the left drawer when starting the race so everyone sees the full-screen track
             const sidebar = document.getElementById('participantSidebar');
             sidebar.classList.add('hidden');
             sidebar.classList.remove('flex');
@@ -1547,6 +1977,7 @@
             generateRacePacingProfiles();
             state.finishedHorses = [];
             state.dustParticles = [];
+            state.holdLocked = false;
             state.raceState = 'countdown';
 
             document.getElementById('startRaceBtn').disabled = true;
@@ -1558,15 +1989,16 @@
             const numEl = document.getElementById('gateCountdownNumber');
             overlay.classList.remove('hidden');
 
+            soundEngine.init();
+            soundEngine.playCallToThePost();
+
             let count = 3;
             numEl.textContent = count;
-            soundEngine.playBeep(520, 0.14, 'sine', 0.16);
 
             const countdownInterval = setInterval(() => {
                 count--;
                 if (count > 0) {
                     numEl.textContent = count;
-                    soundEngine.playBeep(520, 0.14, 'sine', 0.16);
                 } else if (count === 0) {
                     numEl.textContent = 'GO!';
                     soundEngine.playStartGateBell();
@@ -1584,6 +2016,7 @@
             state.lastCommentaryTime = 0;
             document.getElementById('raceStatusDot').className = 'w-2 h-2 rounded-full bg-emerald-400 animate-ping';
 
+            soundEngine.startRaceMusic();
             requestAnimationFrame(raceAnimationLoop);
         }
 
@@ -1614,17 +2047,12 @@
             const padBottom = trackBottom - (totalHorses <= 15 ? 16 : 22);
             const usableH = Math.max(120, padBottom - padTop);
 
-            const startX = 115;
-            const finishX = width - 110;
-            const raceDistancePx = Math.max(240, finishX - startX);
+            const { startX, raceDistancePx } = getTrackHorizontalBounds(width);
 
-            // Step every horse's horizontal progress along its strict straight-line Y coordinate
             state.participants.forEach((horse, idx) => {
                 const prevProgress = horse.progress;
                 const newProgress = evaluateHorseProgress(horse, state.elapsedSec);
                 horse.progress = newProgress;
-
-                // Keep Y strictly equal to baseYRatio (zero up-and-down wandering!)
                 horse.yRatio = horse.baseYRatio;
 
                 const delta = Math.max(0.0005, newProgress - prevProgress);
@@ -1632,7 +2060,6 @@
 
                 if (newProgress > maxProgress) maxProgress = newProgress;
 
-                // Check if horse just crossed the finish line (progress >= 1.0)
                 if (horse.finishTime === null && newProgress >= 1.0) {
                     const fraction = (1.0 - prevProgress) / Math.max(0.00001, newProgress - prevProgress);
                     horse.finishTime = Math.max(0.01, state.elapsedSec - (1 - fraction) * 0.016);
@@ -1640,8 +2067,6 @@
                     horse.finishRank = state.finishedHorses.length;
 
                     if (horse.finishRank === 1) {
-                        state.cameraFlashAlpha = 0.75;
-                        soundEngine.playVictoryFanfare();
                         updateCommentary(`衝線！恭喜 #${horse.number} ${horse.name} 奪得全場總冠軍！`);
                     }
                 }
@@ -1652,13 +2077,16 @@
                 }
             });
 
-            soundEngine.playHoofbeat(maxProgress > 0.75 ? 1.35 : 0.9);
+            if (maxProgress > 0.72 && !soundEngine.sprintMode) {
+                soundEngine.sprintMode = true;
+            }
+
+            soundEngine.playHoofbeat(maxProgress > 0.75 ? 1.35 : 0.95);
 
             const pct = Math.min(100, Math.round(maxProgress * 100));
             document.getElementById('distancePercentText').textContent = `${pct}%`;
             document.getElementById('raceProgressBar').style.width = `${pct}%`;
 
-            // Sort horses to update live rank map & Top 10 ticker
             const sorted = [...state.participants].sort((a, b) => {
                 if (a.finishRank && b.finishRank) return a.finishRank - b.finishRank;
                 if (a.finishRank) return -1;
@@ -1671,21 +2099,23 @@
 
             drawRaceFrame();
 
+            const targetWinnersCount = Math.min(10, state.participants.length);
             const allFinished = state.finishedHorses.length >= state.participants.length;
-            const top10DoneAndTimeUp = (
-                state.finishedHorses.length >= Math.min(10, state.participants.length) &&
-                state.elapsedSec >= duration + 1.35
-            );
+            const top10Crossed = state.finishedHorses.length >= targetWinnersCount;
 
-            if (allFinished || top10DoneAndTimeUp) {
-                finalizeRaceResults();
+            if (allFinished || top10Crossed) {
+                enterFinishLineHold();
             } else {
                 requestAnimationFrame(raceAnimationLoop);
             }
         }
 
-        function finalizeRaceResults() {
-            state.raceState = 'finished';
+        function enterFinishLineHold() {
+            state.raceState = 'holding';
+
+            soundEngine.stopRaceMusic();
+            soundEngine.playPhotoFinishShutter();
+            soundEngine.playVictoryFanfare();
 
             const unfinished = state.participants
                 .filter(h => h.finishTime === null)
@@ -1697,7 +2127,14 @@
                 h.finishRank = state.finishedHorses.length;
             });
 
-            state.finishedHorses.forEach((h, i) => state.liveRankMap.set(h.id, i + 1));
+            state.finishedHorses.forEach((h, i) => {
+                state.liveRankMap.set(h.id, i + 1);
+                if (i === 0) {
+                    h.progress = 1.015;
+                } else if (i < 10) {
+                    h.progress = Math.max(0.992, Math.min(1.01, h.progress));
+                }
+            });
 
             document.getElementById('countdownDisplay').textContent = '00:00.00';
             document.getElementById('distancePercentText').textContent = '100%';
@@ -1709,19 +2146,71 @@
             document.getElementById('openResultsBtn').classList.remove('hidden');
             document.getElementById('openResultsBtn').classList.add('inline-flex');
 
+            const champ = state.finishedHorses[0];
+            updateCommentary(`📸 終點線定格 HOLD 住！恭喜 #${champ.number} ${champ.name} 勇奪頭獎！`);
+
             drawRaceFrame();
             launchConfettiCelebration();
 
-            setTimeout(() => {
-                openResultsModal();
-            }, 550);
+            showFinishHoldBanner(champ);
+        }
+
+        function showFinishHoldBanner(champ) {
+            const banner = document.getElementById('finishHoldBanner');
+            const champText = document.getElementById('holdChampionText');
+            const subText = document.getElementById('holdTimerSubtext');
+            const lockBtn = document.getElementById('toggleHoldLockBtn');
+            const lockLabel = document.getElementById('holdLockLabel');
+
+            champText.textContent = `👑 冠軍：#${champ.number} ${champ.name}`;
+            state.holdLocked = false;
+            lockLabel.textContent = '鎖定畫面 (繼續 Hold 住)';
+            lockBtn.className = 'px-3 py-1.5 rounded-xl bg-emerald-800/90 hover:bg-emerald-700 border border-amber-400/60 text-amber-200 font-bold text-xs sm:text-sm flex items-center gap-1.5 transition';
+
+            banner.classList.remove('hidden');
+            banner.classList.add('hold-banner-enter');
+
+            let holdRemaining = 5;
+            subText.textContent = `終點畫面定格展示中（${holdRemaining} 秒後自動開啟頒獎台）`;
+
+            clearHoldTimers();
+            state.holdInterval = setInterval(() => {
+                if (state.holdLocked) {
+                    subText.textContent = '📌 已鎖定終點定格畫面（點擊右側按鈕開啟頒獎台）';
+                    return;
+                }
+                holdRemaining--;
+                if (holdRemaining > 0) {
+                    subText.textContent = `終點畫面定格展示中（${holdRemaining} 秒後自動開啟頒獎台）`;
+                } else {
+                    clearHoldTimers();
+                    state.raceState = 'finished';
+                    openResultsModal();
+                }
+            }, 1000);
+        }
+
+        function hideFinishHoldBanner() {
+            const banner = document.getElementById('finishHoldBanner');
+            banner.classList.add('hidden');
+            banner.classList.remove('hold-banner-enter');
+        }
+
+        function clearHoldTimers() {
+            if (state.holdInterval) {
+                clearInterval(state.holdInterval);
+                state.holdInterval = null;
+            }
         }
 
         /* ============================================================================
-         * 7. RESULTS MODAL, TOP 3 PODIUM & COPY FUNCTIONS (NO ODDS)
+         * 7. RESULTS MODAL, TOP 3 PODIUM & COPY FUNCTIONS
          * ============================================================================ */
         function openResultsModal() {
             if (state.finishedHorses.length === 0) return;
+
+            clearHoldTimers();
+            state.raceState = 'finished';
 
             document.getElementById('resultsSubtitle').textContent =
                 `總參與人數：${state.participants.length} 人 ｜ 設定時間：${state.raceDurationSec} 秒 ｜ 頭獎衝線時間：${state.finishedHorses[0].finishTime.toFixed(2)} 秒`;
@@ -1738,6 +2227,12 @@
             const modal = document.getElementById('resultsModal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+            if (state.finishedHorses.length > 0) {
+                state.holdLocked = true;
+                document.getElementById('holdLockLabel').textContent = '已鎖定終點定格';
+                document.getElementById('holdTimerSubtext').textContent = '📌 已保留終點衝線定格畫面（隨時可重開頒獎台）';
+                document.getElementById('finishHoldBanner').classList.remove('hidden');
+            }
         }
 
         function renderTop3Podium() {
@@ -1763,10 +2258,10 @@
                     <div class="my-1">
                         ${createHorseBadgeSVG(h.outlook, h.number, slot.rank === 1 ? 64 : 54)}
                     </div>
-                    <div class="text-base sm:text-lg font-black text-white truncate max-w-full mt-1">
+                    <div class="text-lg sm:text-xl font-black text-white truncate max-w-full mt-1">
                         ${escapeHtml(h.name)}
                     </div>
-                    <div class="flex items-center gap-2 mt-1 text-xs">
+                    <div class="flex items-center gap-2 mt-1.5 text-xs">
                         <span class="px-2 py-0.5 rounded-md font-semibold" style="background:${h.outlook.badgeBg}; color:${h.outlook.textColor}; border:1px solid ${h.outlook.badgeBorder}">
                             #${h.number} ${h.outlook.name}
                         </span>
@@ -1810,7 +2305,7 @@
                             <span>${h.outlook.name}</span>
                         </div>
                     </td>
-                    <td class="py-2.5 px-4 font-bold text-white">${escapeHtml(h.name)}</td>
+                    <td class="py-2.5 px-4 font-black text-sm sm:text-base text-white">${escapeHtml(h.name)}</td>
                     <td class="py-2.5 px-4 font-mono font-bold text-right text-amber-200">${h.finishTime.toFixed(3)}s</td>
                 </tr>`;
             }).join('');
@@ -1821,8 +2316,8 @@
             if (list.length === 0) return;
 
             const header = top10Only
-                ? `🏆 【公司幸運賽馬大抽獎 - Top 10 得獎名單】`
-                : `🏆 【公司幸運賽馬大抽獎 - 完整衝線排名 (共 ${list.length} 名)】`;
+                ? `🏆 【Legan Group 賽馬大抽獎 - Top 10 得獎名單】`
+                : `🏆 【Legan Group 賽馬大抽獎 - 完整衝線排名 (共 ${list.length} 名)】`;
 
             const lines = list.map(h =>
                 `第 ${String(h.finishRank).padStart(2, '0')} 名 | #${h.number} [${h.outlook.name}] ${h.name} (${h.finishTime.toFixed(2)}s)`
@@ -1852,7 +2347,7 @@
             cCanvas.height = window.innerHeight;
             const cCtx = cCanvas.getContext('2d');
 
-            const pieces = Array.from({ length: 110 }, () => ({
+            const pieces = Array.from({ length: 120 }, () => ({
                 x: Math.random() * cCanvas.width,
                 y: -20 - Math.random() * cCanvas.height * 0.5,
                 w: 6 + Math.random() * 6,
@@ -1882,7 +2377,7 @@
                     cCtx.restore();
                 });
 
-                if (active > 0 && frames < 220) {
+                if (active > 0 && frames < 240) {
                     requestAnimationFrame(stepConfetti);
                 } else {
                     cCanvas.classList.add('hidden');
@@ -1939,17 +2434,19 @@
         }
 
         function bindEventListeners() {
-            // Toggle Left Participant Drawer
             document.getElementById('toggleDrawerBtn').addEventListener('click', () => toggleSidebarDrawer());
             document.getElementById('closeSidebarBtn').addEventListener('click', () => toggleSidebarDrawer(false));
 
-            // Horse Scale Slider (馬匹與騎師放大調節 - 最高支援 4.5x)
             document.getElementById('horseScaleSlider').addEventListener('input', (e) => {
-                setHorseScale(parseFloat(e.target.value) || 1.8);
+                setHorseScale(parseFloat(e.target.value) || 2.6);
                 drawRaceFrame();
             });
 
-            // Name Tag Mode Toggle (顯示全部名字 vs 突顯領先名字)
+            document.getElementById('nameScaleSlider').addEventListener('input', (e) => {
+                setNameScale(parseFloat(e.target.value) || 1.2);
+                drawRaceFrame();
+            });
+
             document.getElementById('labelModeBtn').addEventListener('click', () => {
                 state.labelMode = state.labelMode === 'all' ? 'leaders' : 'all';
                 document.getElementById('labelModeText').textContent =
@@ -1957,17 +2454,42 @@
                 drawRaceFrame();
             });
 
-            // Sound Toggle
             document.getElementById('soundToggleBtn').addEventListener('click', () => {
                 soundEngine.enabled = !soundEngine.enabled;
                 const icon = document.getElementById('soundIcon');
+                const label = document.getElementById('soundLabel');
                 icon.className = soundEngine.enabled
                     ? 'fa-solid fa-volume-high text-amber-400'
                     : 'fa-solid fa-volume-xmark text-emerald-500';
-                showToast(soundEngine.enabled ? '已開啟現場賽馬音效' : '已切換為靜音模式');
+                if (label) label.textContent = soundEngine.enabled ? '音樂開' : '已靜音';
+
+                if (!soundEngine.enabled) {
+                    soundEngine.stopRaceMusic();
+                } else if (state.raceState === 'racing') {
+                    soundEngine.startRaceMusic();
+                }
+                showToast(soundEngine.enabled ? '已開啟賽馬交響配樂與現場音效' : '已切換為靜音模式');
             });
 
-            // Sidebar Tabs: Edit Textarea vs Roster Preview
+            document.getElementById('toggleHoldLockBtn').addEventListener('click', () => {
+                state.holdLocked = !state.holdLocked;
+                const lockBtn = document.getElementById('toggleHoldLockBtn');
+                const lockLabel = document.getElementById('holdLockLabel');
+                if (state.holdLocked) {
+                    lockLabel.textContent = '已鎖定終點定格';
+                    lockBtn.className = 'px-3 py-1.5 rounded-xl bg-amber-400/25 border border-amber-400 text-amber-300 font-black text-xs sm:text-sm flex items-center gap-1.5 transition';
+                    document.getElementById('holdTimerSubtext').textContent = '📌 已鎖定終點定格畫面（隨時可按右側開啟頒獎台）';
+                    showToast('已鎖定終點線定格畫面！');
+                } else {
+                    lockLabel.textContent = '鎖定畫面 (繼續 Hold 住)';
+                    lockBtn.className = 'px-3 py-1.5 rounded-xl bg-emerald-800/90 hover:bg-emerald-700 border border-amber-400/60 text-amber-200 font-bold text-xs sm:text-sm flex items-center gap-1.5 transition';
+                }
+            });
+
+            document.getElementById('viewPodiumNowBtn').addEventListener('click', () => {
+                openResultsModal();
+            });
+
             const tabEditBtn = document.getElementById('tabEditBtn');
             const tabRosterBtn = document.getElementById('tabRosterBtn');
             const editPanel = document.getElementById('editPanel');
@@ -1990,26 +2512,12 @@
                 editPanel.classList.add('hidden');
             });
 
-            // Preset Demo Buttons (10 Names / 30 Names / 120 Names / Shuffle / Clear)
+            // 10-person preset button (1 = Red, 2 = Blue ... 10 = Indigo)
             document.getElementById('load10Btn').addEventListener('click', () => {
                 if (state.raceState === 'racing') return;
                 document.getElementById('namesTextarea').value = generateDemoNames(10).join('\n');
-                syncParticipantsFromTextarea(true, true);
-                showToast('已載入 10 位同事名單（等距獨立跑道 + 2.6x 大馬匹）！');
-            });
-
-            document.getElementById('load30Btn').addEventListener('click', () => {
-                if (state.raceState === 'racing') return;
-                document.getElementById('namesTextarea').value = generateDemoNames(30).join('\n');
-                syncParticipantsFromTextarea(true, true);
-                showToast('已載入 30 位同事精選名單！');
-            });
-
-            document.getElementById('load120Btn').addEventListener('click', () => {
-                if (state.raceState === 'racing') return;
-                document.getElementById('namesTextarea').value = generateDemoNames(120).join('\n');
-                syncParticipantsFromTextarea(true, true);
-                showToast('已載入 120 位同事範例名單！');
+                syncParticipantsFromTextarea(false, true);
+                showToast('已載入 10 位同事名單（1–10 號獨立專屬顏色）！');
             });
 
             document.getElementById('shuffleNamesBtn').addEventListener('click', () => {
@@ -2022,7 +2530,7 @@
                 }
                 textarea.value = lines.join('\n');
                 syncParticipantsFromTextarea(true, false);
-                showToast('已隨機洗牌並重新分配 12 色騎師綵衣！');
+                showToast('已隨機洗牌並重新分配不重複顏色！');
             });
 
             document.getElementById('clearNamesBtn').addEventListener('click', () => {
@@ -2047,7 +2555,6 @@
 
             document.getElementById('rosterSearchInput').addEventListener('input', renderRosterList);
 
-            // Timer Preset Buttons
             const presetBtns = document.querySelectorAll('.time-preset-btn');
             presetBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -2074,11 +2581,9 @@
                 }
             });
 
-            // Start & Reset Race Buttons
             document.getElementById('startRaceBtn').addEventListener('click', startRaceSequence);
             document.getElementById('resetRaceBtn').addEventListener('click', resetRaceToGate);
 
-            // Results Modal Controls
             document.getElementById('openResultsBtn').addEventListener('click', openResultsModal);
             document.getElementById('closeResultsModalBtn').addEventListener('click', closeResultsModal);
 
@@ -2107,7 +2612,6 @@
             document.getElementById('copyTop10Btn').addEventListener('click', () => copyRankingsToClipboard(true));
             document.getElementById('copyAllRankingsBtn').addEventListener('click', () => copyRankingsToClipboard(false));
 
-            // Next Round Buttons (Remove Top 10 / Remove Top 1 / Race Again)
             document.getElementById('raceAgainSameRosterBtn').addEventListener('click', () => {
                 closeResultsModal();
                 resetRaceToGate();
@@ -2126,10 +2630,16 @@
         }
 
         function resetRaceToGate() {
+            soundEngine.stopRaceMusic();
+            clearHoldTimers();
+            hideFinishHoldBanner();
+
             state.raceState = 'idle';
             state.elapsedSec = 0;
             state.finishedHorses = [];
             state.dustParticles = [];
+            state.holdLocked = false;
+
             document.getElementById('gateCountdownOverlay').classList.add('hidden');
             document.getElementById('startRaceBtn').disabled = false;
             document.getElementById('startRaceBtn').classList.remove('opacity-50', 'cursor-not-allowed');
@@ -2149,7 +2659,7 @@
                 state.liveRankMap.set(h.id, i + 1);
             });
 
-            updateCommentary('所有馬匹已就位！隨時可點擊「開閘起跑」進行抽獎！');
+            updateCommentary('所有馬匹已就位！隨時可點擊「開閘起跑」進行 Legan Group 賽馬大抽獎！');
             drawRaceFrame();
         }
 
@@ -2167,10 +2677,10 @@
             showToast(`已剔除前 ${removeCount} 名得獎者，剩餘 ${remainingNames.length} 位同事待命！`);
         }
 
-        // Initialize Application on Window Load
+        // Default startup: load 10 participants with distinct colors (1 = Red, 2 = Blue ... 10 = Indigo)
         window.onload = function () {
             renderColorSwatches();
-            document.getElementById('namesTextarea').value = generateDemoNames(120).join('\n');
+            document.getElementById('namesTextarea').value = generateDemoNames(10).join('\n');
             syncParticipantsFromTextarea(false, true);
             bindEventListeners();
             resizeAndDrawCanvas();
